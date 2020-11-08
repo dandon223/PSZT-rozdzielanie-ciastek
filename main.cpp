@@ -22,7 +22,7 @@ int main() {
     int prawdMutacji = 5;
     std::uniform_real_distribution<double> rozkladJednolity(0, std::nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
 
-    vector<int> oceny = czytaniePliku("C:\\Users\\Magda\\CLionProjects\\PSZT_projekt2\\imput.txt");
+    vector<int> oceny = czytaniePliku();
     vector<vector<int>> populacja = generacjaPopulacji(wielkosc_populacji, oceny);
 
     // glowna petla
