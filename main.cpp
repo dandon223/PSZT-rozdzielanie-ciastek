@@ -8,27 +8,48 @@
 #include<tuple>
 #include <cfloat>
 
-std::vector<int> czytaniePliku(std::string sciezka);
-std::vector<std::vector<int>> generacjaPopulacji(int wielkosc_populacji, std::vector<int> const & oceny);
-void mutacja(std::vector<int>& potomek,int pm,int pm2,std::mt19937 & gen,std::uniform_real_distribution<double>& dist);
-int funkcjaCelu(std::vector<int>& genom , std::vector<int>const & oceny);
-std::vector<int> selekcja(std::vector<int>& oceny,std::vector<std::tuple<int , std::vector<int>>>& zbior_dobrych,std::mt19937 gen,std::discrete_distribution<> d);
-std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & populacja, std::vector<int> & wynikiFunkcjiCelu , std::vector<std::tuple<int , std::vector<int>>>& zbior_dobrych);
 using namespace std;
-int main() {
-    std::random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-    std::mt19937 gen(rd());
-    int wielkosc_populacji = 20;
-    int prawdMutacji = 5;
-    std::uniform_real_distribution<double> rozkladJednolity(0, std::nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
 
-    vector<int> oceny = czytaniePliku();
-    vector<vector<int>> populacja = generacjaPopulacji(wielkosc_populacji, oceny);
+const string FILE_NAME = "imput.txt";
+
+vector<int> czytaniePliku(string sciezka);
+vector<vector<int>> generacjaPopulacji(int wielkosc_populacji, vector<int> const & oceny);
+void mutacja(vector<int>& potomek, int pm, int pm2, mt19937 & gen, uniform_real_distribution<double>& dist);
+int funkcjaCelu(vector<int>& genom , vector<int>const & oceny);
+vector<int> selekcja(vector<int>& oceny,vector<tuple<int , vector<int>>>& zbior_dobrych, mt19937 gen, discrete_distribution<> d);
+discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych);
+
+int main(int argc, char *argv[]) {
+	int wielkoscPopulacji = 100;
+	int liczbaGeneracji = 10000;
+	int prawdopodobienstwoMutacji = 5;
+	
+	//analiza flag
+	for(int i = 1; i < argc; ++i )
+	{
+		switch(argv[i][1])
+		{
+			case 'p': //populacja
+				wielkoscPopulacji = stoi(argv[i+1]);
+			case 'g': //liczba generacji
+				liczbaGeneracji = stoi(argv[i+1]);
+			case 'm': //prawdopodobienstwo mutacji
+				prawdopodobienstwoMutacji = stoi(argv[i+1]);
+		}
+	}
+	
+    random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+    mt19937 gen(rd());
+    
+    uniform_real_distribution<double> rozkladJednolity(0, std::nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
+
+    vector<int> oceny = czytaniePliku(FILE_NAME);
+    vector<vector<int>> populacja = generacjaPopulacji(wielkoscPopulacji, oceny);
 
     // glowna petla
 
-    for(int i = 0 ; i <20000; i++){
-
+    for(int i = 0 ; i < liczbaGeneracji; i++){
+		cout << "\n";
         vector<int> wynikiFunkcjiCelu;
         vector<vector<int>> nowaPopulacja;
         nowaPopulacja.clear();
@@ -41,6 +62,8 @@ int main() {
         // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
 
         for(int i=0 ; i < populacja.size();i++){
+        	for(int gen : populacja[i])
+        	    cout<<gen<<" ";
             int wynik = funkcjaCelu(populacja[i], oceny);
             if(wynik <minimalnyWynik){
                 minimalnyWynik = wynik;
@@ -48,21 +71,22 @@ int main() {
                 indexNajlepszegoWyniku = i;
             }
             wynikiFunkcjiCelu.push_back(wynik);
+            cout <<"|" <<wynik<<"\n";
         }
         // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
         nowaPopulacja.push_back(populacja[indexNajlepszegoWyniku]);
         nowaPopulacja.push_back(populacja[indexDrugiegoNajlepszegoWyniku]);
 
-        std::vector<tuple<int , std::vector<int>>> zbiorRozwiazan;
+        vector<tuple<int , std::vector<int>>> zbiorRozwiazan;
         zbiorRozwiazan.clear();
 
         // dystrybucja dyskretna po ktorej bedziemy wybierac kolejnych osobnikow do selekcji
-        std::discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
+        discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
 
-        for(int i=0 ; i <wielkosc_populacji -2 ; i++){
+        for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
             vector<int> rodzic = selekcja(oceny, zbiorRozwiazan, gen, rozkladDyskretny);
             vector<int> kopia  = rodzic;
-            mutacja(rodzic, prawdMutacji , prawdMutacji * 2, gen, rozkladJednolity);
+            mutacja(rodzic, prawdopodobienstwoMutacji , prawdopodobienstwoMutacji * 2, gen, rozkladJednolity);
             if(funkcjaCelu(rodzic, oceny) == INT_MAX)
                 nowaPopulacja.push_back(kopia);
             else
@@ -70,7 +94,7 @@ int main() {
         }
         populacja = nowaPopulacja;
     }
-    std::vector<int>wynikiFunkcjiCelu;
+    vector<int>wynikiFunkcjiCelu;
     int minimalnyWynik=INT_MAX;
     int indexWyniku = 0;
     for(int i=0 ; i < populacja.size();i++){
@@ -80,7 +104,7 @@ int main() {
             indexWyniku = i;
         }
     }
-    std::vector<int> genom = populacja[indexWyniku];
+    vector<int> genom = populacja[indexWyniku];
     cout<<"\n============================\n";
     cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
     for(int x : genom)
@@ -89,7 +113,7 @@ int main() {
     return 0;
 }
 // przygotowuje dystrubuante pod selekcje turniejowa [a=1 , k=2],
-std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & populacja, std::vector<int> & wynikiFunkcjiCelu , std::vector<std::tuple<int , std::vector<int>>>& zbior_dobrych){
+discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych){
 
     for(int i = 0 ; i <populacja.size();i++){
             zbior_dobrych.push_back(make_tuple(wynikiFunkcjiCelu[i], populacja[i]));
@@ -102,11 +126,11 @@ std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & popu
     for(int i = 0 ; i < liczbaWynikow; i++){
             wynikiFunkcjiCelu[i] = 1.0 + 10.0 * (1 - i / liczbaWynikow); //selekcja turniejowa [a=1 , k=2]
     }
-    std::discrete_distribution<> d(wynikiFunkcjiCelu.begin(), wynikiFunkcjiCelu.end());
+    discrete_distribution<> d(wynikiFunkcjiCelu.begin(), wynikiFunkcjiCelu.end());
     return d;
 }
 // mutacja kazdego genu osobno , szansa zmiany pm
-void mutacja(std::vector<int>& genom , int pm, int pm2,std::mt19937 & gen,std::uniform_real_distribution<double>& dist){
+void mutacja(vector<int>& genom , int pm, int pm2,mt19937 & gen, uniform_real_distribution<double>& dist){
     for(int i = 0 ; i <genom.size();i++){
         double prawd = dist(gen);
         if(genom[i]!=1){
@@ -121,7 +145,7 @@ void mutacja(std::vector<int>& genom , int pm, int pm2,std::mt19937 & gen,std::u
 }
 // selekcja osobnika do mutacji , selekcja turniejowa [a=1 , k=2],
 // wazne zeby przed tym wywolac dobraPopulacja , ktora sortuje oraz tworzy rozklad prawdopodobienstwa wyboru poszczegolnych osobnikow
-std::vector<int> selekcja(std::vector<int>& oceny,std::vector<std::tuple<int , std::vector<int>>>& zbior_dobrych , std::mt19937 gen,std::discrete_distribution<> d){
+std::vector<int> selekcja(vector<int>& oceny, vector<tuple<int , vector<int>>>& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
     int liczba1 = d(gen);
     std::vector<int> rodzic1 = get<1>(zbior_dobrych[liczba1]);
 
@@ -134,7 +158,7 @@ std::vector<int> selekcja(std::vector<int>& oceny,std::vector<std::tuple<int , s
         return rodzic2;
 }
 // ocenia osobnika , naprawia drobne bledy
-int funkcjaCelu(std::vector<int> & genom , std::vector<int> const & oceny){
+int funkcjaCelu(vector<int> & genom , vector<int> const & oceny){
     int suma=0;
     for(int i =0 ; i <genom.size();i++){
         if(genom[i]<=0 || oceny[i]==1)
@@ -163,7 +187,7 @@ std::vector<int> czytaniePliku(std::string sciezka){
     return v;
 }
 //generuje poczatkowa populacje z ocen uczniow
-std::vector<std::vector<int>> generacjaPopulacji(int wielkosc_populacji, std::vector<int> const & oceny){
+vector<vector<int>> generacjaPopulacji(int wielkosc_populacji, vector<int> const & oceny){
     vector<vector<int>> populacja;
     for(int i=0 ; i <wielkosc_populacji;i++){
         populacja.push_back(oceny);
