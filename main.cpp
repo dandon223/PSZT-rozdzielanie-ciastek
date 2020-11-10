@@ -25,23 +25,39 @@ int main(int argc, char *argv[]) {
 	int prawdopodobienstwoMutacji = 5;
 	
 	//analiza flag
-	for(int i = 1; i < argc; ++i )
+	for(int i = 1; i < argc; i+=2 )
 	{
-		switch(argv[i][1])
+		if(i+1 < argc)
 		{
-			case 'p': //populacja
-				wielkoscPopulacji = stoi(argv[i+1]);
-			case 'g': //liczba generacji
-				liczbaGeneracji = stoi(argv[i+1]);
-			case 'm': //prawdopodobienstwo mutacji
-				prawdopodobienstwoMutacji = stoi(argv[i+1]);
+			switch(argv[i][1])
+			{
+				case 'p': //populacja
+					if(stoi(argv[i+1]) < 5)
+					{
+						cout << "populacja musi byc nie mniejsza niz 5\n";
+						return 0;
+					}
+					else
+					{
+						wielkoscPopulacji = stoi(argv[i+1]);
+					}
+				case 'g': //liczba generacji
+					liczbaGeneracji = stoi(argv[i+1]);
+				case 'm': //prawdopodobienstwo mutacji
+					prawdopodobienstwoMutacji = stoi(argv[i+1]);
+			}
+		}
+		else
+		{
+			cout << "bledna liczba parametrow wykonania\n";
+			return 0;
 		}
 	}
 	
     random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     mt19937 gen(rd());
     
-    uniform_real_distribution<double> rozkladJednolity(0, std::nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
+    uniform_real_distribution<double> rozkladJednolity(0, nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
 
     vector<int> oceny = czytaniePliku(FILE_NAME);
     vector<vector<int>> populacja = generacjaPopulacji(wielkoscPopulacji, oceny);
@@ -49,7 +65,6 @@ int main(int argc, char *argv[]) {
     // glowna petla
 
     for(int i = 0 ; i < liczbaGeneracji; i++){
-		cout << "\n";
         vector<int> wynikiFunkcjiCelu;
         vector<vector<int>> nowaPopulacja;
         nowaPopulacja.clear();
@@ -62,8 +77,8 @@ int main(int argc, char *argv[]) {
         // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
 
         for(int i=0 ; i < populacja.size();i++){
-        	for(int gen : populacja[i])
-        	    cout<<gen<<" ";
+        	//for(int gen : populacja[i])
+        	//    cout<<gen<<" ";
             int wynik = funkcjaCelu(populacja[i], oceny);
             if(wynik <minimalnyWynik){
                 minimalnyWynik = wynik;
@@ -71,13 +86,13 @@ int main(int argc, char *argv[]) {
                 indexNajlepszegoWyniku = i;
             }
             wynikiFunkcjiCelu.push_back(wynik);
-            cout <<"|" <<wynik<<"\n";
+            //cout <<"|" <<wynik<<"\n";
         }
         // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
         nowaPopulacja.push_back(populacja[indexNajlepszegoWyniku]);
         nowaPopulacja.push_back(populacja[indexDrugiegoNajlepszegoWyniku]);
 
-        vector<tuple<int , std::vector<int>>> zbiorRozwiazan;
+        vector<tuple<int , vector<int>>> zbiorRozwiazan;
         zbiorRozwiazan.clear();
 
         // dystrybucja dyskretna po ktorej bedziemy wybierac kolejnych osobnikow do selekcji
@@ -145,12 +160,12 @@ void mutacja(vector<int>& genom , int pm, int pm2,mt19937 & gen, uniform_real_di
 }
 // selekcja osobnika do mutacji , selekcja turniejowa [a=1 , k=2],
 // wazne zeby przed tym wywolac dobraPopulacja , ktora sortuje oraz tworzy rozklad prawdopodobienstwa wyboru poszczegolnych osobnikow
-std::vector<int> selekcja(vector<int>& oceny, vector<tuple<int , vector<int>>>& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
+vector<int> selekcja(vector<int>& oceny, vector<tuple<int , vector<int>>>& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
     int liczba1 = d(gen);
-    std::vector<int> rodzic1 = get<1>(zbior_dobrych[liczba1]);
+    vector<int> rodzic1 = get<1>(zbior_dobrych[liczba1]);
 
     int liczba2 = d(gen);
-    std::vector<int> rodzic2 = get<1>(zbior_dobrych[liczba2]);
+    vector<int> rodzic2 = get<1>(zbior_dobrych[liczba2]);
 
     if(funkcjaCelu(rodzic1, oceny) < funkcjaCelu(rodzic2, oceny))
         return rodzic1;
@@ -176,7 +191,7 @@ int funkcjaCelu(vector<int> & genom , vector<int> const & oceny){
     return  suma;
 }
 //zczytuje oceny uczniow z pliku
-std::vector<int> czytaniePliku(std::string sciezka){
+vector<int> czytaniePliku(string sciezka){
     vector<int> v;
     ifstream file;
     file.open (sciezka);
