@@ -9,9 +9,10 @@
 #include <cfloat>
 #include <climits>
 
-using namespace std;
+#include "EvolutionarySolution.hpp"
+#include "IterativeSolution.hpp"
 
-const string FILE_NAME = "imput.txt";
+using namespace std;
 
 vector<int> czytaniePliku(string sciezka);
 vector<vector<int>> generacjaPopulacji(int wielkosc_populacji, vector<int> const & oceny);
@@ -21,6 +22,9 @@ vector<int> selekcja(vector<int>& oceny,vector<tuple<int , vector<int>>>& zbior_
 discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych);
 
 int main(int argc, char *argv[]) {
+    ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+
 	//wartosci domyslne
 	int wielkoscPopulacji = 100;
 	int liczbaGeneracji = 10000;
@@ -58,79 +62,10 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 	}
-	
-    random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-    mt19937 gen(rd());
+
+    EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
+	eSolution.runSolution();
     
-    uniform_real_distribution<double> rozkladJednolity(0, nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
-
-    vector<int> oceny = czytaniePliku(FILE_NAME);
-    vector<vector<int>> populacja = generacjaPopulacji(wielkoscPopulacji, oceny);
-
-    // glowna petla
-
-    for(int i = 0 ; i < liczbaGeneracji; i++){
-        vector<int> wynikiFunkcjiCelu;
-        vector<vector<int>> nowaPopulacja;
-        nowaPopulacja.clear();
-        wynikiFunkcjiCelu.clear();
-
-        int minimalnyWynik=INT_MAX;
-        int indexNajlepszegoWyniku = 0;
-        int indexDrugiegoNajlepszegoWyniku = 0;
-
-        // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
-
-        for(unsigned int i=0 ; i < populacja.size();i++){
-        	//for(int gen : populacja[i])
-        	//    cout<<gen<<" ";
-            int wynik = funkcjaCelu(populacja[i], oceny);
-            if(wynik <minimalnyWynik){
-                minimalnyWynik = wynik;
-                indexDrugiegoNajlepszegoWyniku = indexNajlepszegoWyniku;
-                indexNajlepszegoWyniku = i;
-            }
-            wynikiFunkcjiCelu.push_back(wynik);
-            //cout <<"|" <<wynik<<"\n";
-        }
-        // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
-        nowaPopulacja.push_back(populacja[indexNajlepszegoWyniku]);
-        nowaPopulacja.push_back(populacja[indexDrugiegoNajlepszegoWyniku]);
-
-        vector<tuple<int , vector<int>>> zbiorRozwiazan;
-        zbiorRozwiazan.clear();
-
-        // dystrybucja dyskretna po ktorej bedziemy wybierac kolejnych osobnikow do selekcji
-        discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
-
-        for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
-            vector<int> rodzic = selekcja(oceny, zbiorRozwiazan, gen, rozkladDyskretny);
-            vector<int> kopia  = rodzic;
-            mutacja(rodzic, prawdopodobienstwoMutacji , prawdopodobienstwoMutacji * 2, gen, rozkladJednolity);
-            if(funkcjaCelu(rodzic, oceny) == INT_MAX)
-                nowaPopulacja.push_back(kopia);
-            else
-                nowaPopulacja.push_back(rodzic);
-        }
-        populacja = nowaPopulacja;
-    }
-    vector<int>wynikiFunkcjiCelu;
-    int minimalnyWynik=INT_MAX;
-    int indexWyniku = 0;
-    for(unsigned int i=0 ; i < populacja.size();i++){
-        int wynik = funkcjaCelu(populacja[i], oceny);
-        if(wynik <minimalnyWynik){
-            minimalnyWynik = wynik;
-            indexWyniku = i;
-        }
-    }
-    vector<int> genom = populacja[indexWyniku];
-    cout<<"\n============================\n";
-    cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
-    for(int x : genom)
-        cout<<x<<" ";
-    cout<<"\n============================\n";
-    return 0;
 }
 // przygotowuje dystrubuante pod selekcje turniejowa [a=1 , k=2],
 discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych){
