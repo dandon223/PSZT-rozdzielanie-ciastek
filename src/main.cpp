@@ -7,6 +7,7 @@
 #include <random>
 #include<tuple>
 #include <cfloat>
+#include <climits>
 
 using namespace std;
 
@@ -20,6 +21,7 @@ vector<int> selekcja(vector<int>& oceny,vector<tuple<int , vector<int>>>& zbior_
 discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych);
 
 int main(int argc, char *argv[]) {
+	//wartosci domyslne
 	int wielkoscPopulacji = 100;
 	int liczbaGeneracji = 10000;
 	int prawdopodobienstwoMutacji = 5;
@@ -41,10 +43,13 @@ int main(int argc, char *argv[]) {
 					{
 						wielkoscPopulacji = stoi(argv[i+1]);
 					}
+					break;
 				case 'g': //liczba generacji
 					liczbaGeneracji = stoi(argv[i+1]);
+					break;
 				case 'm': //prawdopodobienstwo mutacji
 					prawdopodobienstwoMutacji = stoi(argv[i+1]);
+					break;
 			}
 		}
 		else
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]) {
 
         // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
 
-        for(int i=0 ; i < populacja.size();i++){
+        for(unsigned int i=0 ; i < populacja.size();i++){
         	//for(int gen : populacja[i])
         	//    cout<<gen<<" ";
             int wynik = funkcjaCelu(populacja[i], oceny);
@@ -112,7 +117,7 @@ int main(int argc, char *argv[]) {
     vector<int>wynikiFunkcjiCelu;
     int minimalnyWynik=INT_MAX;
     int indexWyniku = 0;
-    for(int i=0 ; i < populacja.size();i++){
+    for(unsigned int i=0 ; i < populacja.size();i++){
         int wynik = funkcjaCelu(populacja[i], oceny);
         if(wynik <minimalnyWynik){
             minimalnyWynik = wynik;
@@ -130,7 +135,7 @@ int main(int argc, char *argv[]) {
 // przygotowuje dystrubuante pod selekcje turniejowa [a=1 , k=2],
 discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych){
 
-    for(int i = 0 ; i <populacja.size();i++){
+    for(unsigned int i = 0 ; i <populacja.size();i++){
             zbior_dobrych.push_back(make_tuple(wynikiFunkcjiCelu[i], populacja[i]));
     }
     sort(wynikiFunkcjiCelu.begin(), wynikiFunkcjiCelu.end());
@@ -146,7 +151,7 @@ discrete_distribution<> dobraPopulacja(vector<vector<int>> & populacja, vector<i
 }
 // mutacja kazdego genu osobno , szansa zmiany pm
 void mutacja(vector<int>& genom , int pm, int pm2,mt19937 & gen, uniform_real_distribution<double>& dist){
-    for(int i = 0 ; i <genom.size();i++){
+    for(unsigned int i = 0 ; i <genom.size();i++){
         double prawd = dist(gen);
         if(genom[i]!=1){
             if(genom[i]>=genom.size()*1.5 && prawd < pm2){
@@ -175,7 +180,7 @@ vector<int> selekcja(vector<int>& oceny, vector<tuple<int , vector<int>>>& zbior
 // ocenia osobnika , naprawia drobne bledy
 int funkcjaCelu(vector<int> & genom , vector<int> const & oceny){
     int suma=0;
-    for(int i =0 ; i <genom.size();i++){
+    for(unsigned int i =0 ; i <genom.size();i++){
         if(genom[i]<=0 || oceny[i]==1)
             genom[i]=1;
         if(i==genom.size()-1){
