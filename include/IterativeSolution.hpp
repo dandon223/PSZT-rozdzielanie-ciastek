@@ -6,10 +6,13 @@
 class IterativeSolution
 {
     private:
-        int marks[1000000];
+        int numberOfStudents;
+        std::vector<int>marks;
         int cakesAmount[1000000];
 
     public:
+        IterativeSolution();
+        void setMarks(std::vector<int> marks);
         void runSolution();
 
 };

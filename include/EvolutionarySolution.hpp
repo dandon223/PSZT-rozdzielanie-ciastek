@@ -14,13 +14,10 @@
 class EvolutionarySolution
 {
     private:
-        const std::string FILE_NAME = "./in/input.txt";
-
         int wielkoscPopulacji;
 	    int liczbaGeneracji;
 	    int prawdopodobienstwoMutacji;
         std::vector<int> oceny;
-
 
         std::vector<int> czytaniePliku(std::string sciezka);
         std::vector<std::vector<int> > generacjaPopulacji(int wielkosc_populacji, std::vector<int> const & oceny);
@@ -29,9 +26,9 @@ class EvolutionarySolution
         std::vector<int> selekcja(std::vector<int>& oceny, std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych, std::mt19937 gen, std::discrete_distribution<> d);
         std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & populacja, std::vector<int> & wynikiFunkcjiCelu , std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych);
     public:
-        void runSolution();
         EvolutionarySolution(int wielkoscPopulacji/*=100*/, int liczbaGeneracji/*=10000*/, int prawdopodobienstwoMutacji/*=5*/);
-
+        void setOceny(std::vector<int>oceny);
+        void runSolution();
 };
 
 #endif

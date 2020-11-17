@@ -2,20 +2,24 @@
 
 using namespace std;
 
+IterativeSolution::IterativeSolution()
+{
+
+}
+
+void IterativeSolution::setMarks(std::vector<int> marks)
+{
+	this->marks = marks;
+	this->numberOfStudents = marks.size();
+}
+
 void IterativeSolution::runSolution()
 {
-    int n;
-	cin >> n;
-	
-	for( int i = 0; i < n; ++i )
+
+	//jesli numberOfStudents == 0 => 0 ciastek; numberOfStudents == 1 => 1 ciastko
+	if( numberOfStudents <= 1 )
 	{
-		cin >> marks[i];
-	}
-	
-	//jesli n == 0 => 0 ciastek; n == 1 => 1 ciastko
-	if( n <= 1 )
-	{
-		cout << n;
+		cout << numberOfStudents;
 		return;
 	}
 	
@@ -29,7 +33,7 @@ void IterativeSolution::runSolution()
 		cakesAmount[0] = -1;
 	}
 	
-	for( int i = 1; i < n - 1; ++i )
+	for( int i = 1; i < numberOfStudents - 1; ++i )
 	{
 		//jesli uczen ma nizsza ocene od obu sasiadow to dostaje 1 ciastko
 		if( marks[i] < marks[i+1] && marks[i] < marks[i-1] )
@@ -57,20 +61,20 @@ void IterativeSolution::runSolution()
 	}
 	
 	//jesli ostatni uczen ma wyzsza ocene od poprzednika to dostaje o 1 ciastko wiecej niz on
-	if( marks[n-1] > marks[n-2] )
+	if( marks[numberOfStudents - 1] > marks[numberOfStudents - 2] )
 	{
-		cakesAmount[n-1] = cakesAmount[n-2] + 1;
+		cakesAmount[numberOfStudents - 1] = cakesAmount[numberOfStudents - 2] + 1;
 	}
 	else
 	{
-		cakesAmount[n-1] = 1;
+		cakesAmount[numberOfStudents - 1] = 1;
 	}
 	
-	for( int i = 0; i < n; ++i )
+	for( int i = 0; i < numberOfStudents; ++i )
 		cout << cakesAmount[i] << " ";
 	cout << "\n";
 	
-	for( int i = n-2; i > 0; --i )
+	for( int i = numberOfStudents - 2; i > 0; --i )
 	{
 		if( cakesAmount[i] == -1 )
 		{
@@ -91,6 +95,6 @@ void IterativeSolution::runSolution()
 		cakesAmount[0] = cakesAmount[1] + 1;
 	}
 	
-	for( int i = 0; i < n; ++i )
+	for( int i = 0; i < numberOfStudents; ++i )
 		cout << cakesAmount[i] << " ";
 }

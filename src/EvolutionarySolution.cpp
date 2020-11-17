@@ -7,8 +7,11 @@ EvolutionarySolution::EvolutionarySolution(int wielkoscPopulacji = 100, int licz
     this->wielkoscPopulacji = wielkoscPopulacji;
     this->liczbaGeneracji = liczbaGeneracji;
     this->prawdopodobienstwoMutacji = prawdopodobienstwoMutacji;
+}
 
-    oceny = czytaniePliku(FILE_NAME);
+void EvolutionarySolution::setOceny(vector<int>oceny)
+{
+    this->oceny = oceny;
 }
 
 // przygotowuje dystrubuante pod selekcje turniejowa [a=1 , k=2],
@@ -75,16 +78,7 @@ int EvolutionarySolution::funkcjaCelu(vector<int> & genom , vector<int> const & 
     return  suma;
 }
 //zczytuje oceny uczniow z pliku
-vector<int> EvolutionarySolution::czytaniePliku(string sciezka){
-    vector<int> v;
-    ifstream file;
-    file.open (sciezka);
-    int word;
-    while (file >> word){
-        v.push_back(word);
-    }
-    return v;
-}
+
 //generuje poczatkowa populacje z ocen uczniow
 vector<vector<int> > EvolutionarySolution::generacjaPopulacji(int wielkosc_populacji, vector<int> const & oceny){
     vector<vector<int> > populacja;
