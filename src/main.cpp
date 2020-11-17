@@ -84,10 +84,12 @@ int main(int argc, char *argv[])
     EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
     eSolution.setOceny(oceny);
 	eSolution.runSolution(wersjaMutacji);
+	eSolution.piszWynik();
 
     IterativeSolution iSolution;
     iSolution.setMarks(oceny);
     iSolution.runSolution();
+	iSolution.writeResult();
 
 
 }

@@ -90,7 +90,6 @@ vector<vector<int> > EvolutionarySolution::generacjaPopulacji(int wielkosc_popul
 
 void EvolutionarySolution::runSolution(int wersjaMutacji)
 {
-    cout << wielkoscPopulacji << " " << liczbaGeneracji << " " << prawdopodobienstwoMutacji << "\n";
     random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     mt19937 gen(rd());
     
@@ -101,7 +100,7 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
     // glowna petla
 
     for(int i = 0 ; i < liczbaGeneracji; i++){
-        cout << "generacja nr " << i << "\n";
+        // cout << "generacja nr " << i << "\n";
         vector<int> wynikiFunkcjiCelu;
         vector<vector<int>> nowaPopulacja;
         nowaPopulacja.clear();
@@ -114,8 +113,8 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
         // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
 
         for(unsigned int i=0 ; i < populacja.size();i++){
-        	for(int gen : populacja[i])
-        	    cout<<gen<<" ";
+        	// for(int gen : populacja[i])
+        	//     cout<<gen<<" ";
             int wynik = funkcjaCelu(populacja[i], oceny);
             if(wynik <minimalnyWynik){
                 minimalnyWynik = wynik;
@@ -123,7 +122,7 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
                 indexNajlepszegoWyniku = i;
             }
             wynikiFunkcjiCelu.push_back(wynik);
-            cout <<"|" <<wynik<<"\n";
+            // cout <<"|" <<wynik<<"\n";
         }
         
         // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
@@ -166,10 +165,24 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
             indexWyniku = i;
         }
     }
-    vector<int> genom = populacja[indexWyniku];
-    cout<<"\n============================\n";
-    cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
-    for(int x : genom)
-        cout<<x<<" ";
-    cout<<"\n============================\n";
+    wynik = populacja[indexWyniku];
+    // cout<<"\n============================\n";
+    // cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
+    // for(int x : genom)
+    //     cout<<x<<" ";
+    // cout<<"\n============================\n";
+}
+
+void EvolutionarySolution::piszWynik()
+{
+    cout << "uklad ciastek:\n";
+    int sum = 0;
+    for(int i : wynik)
+    {
+        cout << i << " ";
+        sum += i;
+    }
+    cout << "\nrazem:\n" << sum << "\n";
+
+
 }

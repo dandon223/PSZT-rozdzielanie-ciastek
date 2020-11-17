@@ -8,12 +8,18 @@ class IterativeSolution
     private:
         int numberOfStudents;
         std::vector<int>marks;
-        int cakesAmount[1000000];
+        std::vector<int>cookiesAmount;
+        int result;
+
+        std::vector<std::pair<int, int> >reduceProblem();
 
     public:
         IterativeSolution();
         void setMarks(std::vector<int> marks);
         void runSolution();
+        
+        int getResult();
+        void writeResult();
 
 };
 
