@@ -15,6 +15,12 @@
 using namespace std;
 
 const std::string FILE_NAME = "./in/input.txt";
+const int NUMBER_OF_VERSIONS = 1;
+
+const int DEFAULT_WIELKOSC_POPULACJI = 100;
+const int DEFAULT_LICZBA_GENERACJI = 10000;
+const int DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 5;
+const int DEFAULT_WERSJA_MUTACJI = 1;
 
 vector<int> czytaniePliku(string sciezka);
 
@@ -24,9 +30,10 @@ int main(int argc, char *argv[])
 	cin.tie(NULL);
 
 	//wartosci domyslne
-	int wielkoscPopulacji = 100;
-	int liczbaGeneracji = 10000;
-	int prawdopodobienstwoMutacji = 5;
+	int wielkoscPopulacji = DEFAULT_WIELKOSC_POPULACJI;
+	int liczbaGeneracji = DEFAULT_LICZBA_GENERACJI;
+	int prawdopodobienstwoMutacji = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
+	int wersjaMutacji = DEFAULT_WERSJA_MUTACJI;
 	
 	//analiza flag
 	for(int i = 1; i < argc; i+=2 )
@@ -52,6 +59,17 @@ int main(int argc, char *argv[])
 				case 'm': //prawdopodobienstwo mutacji
 					prawdopodobienstwoMutacji = stoi(argv[i+1]);
 					break;
+				case 'v': //wersja mutacji
+					if(stoi(argv[i+1]) > NUMBER_OF_VERSIONS || stoi(argv[i+1]) < 0)
+					{
+						cout << "nie ma takiej wersji mutacji\n";
+						return 0;
+					}
+					else
+					{
+						wersjaMutacji = stoi(argv[i+1]);
+					}
+					break;
 			}
 		}
 		else
@@ -65,7 +83,7 @@ int main(int argc, char *argv[])
 
     EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
     eSolution.setOceny(oceny);
-	eSolution.runSolution();
+	eSolution.runSolution(wersjaMutacji);
 
     IterativeSolution iSolution;
     iSolution.setMarks(oceny);

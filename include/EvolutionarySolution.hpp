@@ -28,7 +28,7 @@ class EvolutionarySolution
     public:
         EvolutionarySolution(int wielkoscPopulacji/*=100*/, int liczbaGeneracji/*=10000*/, int prawdopodobienstwoMutacji/*=5*/);
         void setOceny(std::vector<int>oceny);
-        void runSolution();
+        void runSolution(int wersjaMutacji);
 };
 
 #endif

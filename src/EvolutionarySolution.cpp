@@ -88,7 +88,7 @@ vector<vector<int> > EvolutionarySolution::generacjaPopulacji(int wielkosc_popul
     return populacja;
 }
 
-void EvolutionarySolution::runSolution()
+void EvolutionarySolution::runSolution(int wersjaMutacji)
 {
     cout << wielkoscPopulacji << " " << liczbaGeneracji << " " << prawdopodobienstwoMutacji << "\n";
     random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
@@ -139,7 +139,16 @@ void EvolutionarySolution::runSolution()
         for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
             vector<int> rodzic = selekcja(oceny, zbiorRozwiazan, gen, rozkladDyskretny);
             vector<int> kopia  = rodzic;
-            mutacja(rodzic, prawdopodobienstwoMutacji , prawdopodobienstwoMutacji * 2, gen, rozkladJednolity);
+            switch (wersjaMutacji)
+            {
+            case 1:
+                mutacja(rodzic, prawdopodobienstwoMutacji , prawdopodobienstwoMutacji * 2, gen, rozkladJednolity);
+                break;
+            
+            default:
+                break;
+            }
+            
             if(funkcjaCelu(rodzic, oceny) == INT_MAX)
                 nowaPopulacja.push_back(kopia);
             else
