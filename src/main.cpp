@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	//wartosci domyslne
 	int wielkoscPopulacji = DEFAULT_WIELKOSC_POPULACJI;
 	int liczbaGeneracji = DEFAULT_LICZBA_GENERACJI;
-	int prawdopodobienstwoMutacji = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
+	double prawdopodobienstwoMutacji = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
 	int wersjaMutacji = DEFAULT_WERSJA_MUTACJI;
 	
 	//analiza flag
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 					liczbaGeneracji = stoi(argv[i+1]);
 					break;
 				case 'm': //prawdopodobienstwo mutacji
-					prawdopodobienstwoMutacji = stoi(argv[i+1]);
+					prawdopodobienstwoMutacji = stof(argv[i+1]);
 					break;
 				case 'v': //wersja mutacji
 					if(stoi(argv[i+1]) > NUMBER_OF_VERSIONS || stoi(argv[i+1]) < 0)
