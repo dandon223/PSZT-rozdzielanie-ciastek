@@ -24,14 +24,16 @@ class EvolutionarySolution
         std::vector<std::vector<int> > generacjaPopulacji();
         void tworzeniekrotnosci();
         void powrotOcen();
-        void mutacja(std::vector<int>& potomek, std::mt19937 & gen, std::uniform_real_distribution<double>& dist);
+        void mutacja_v1(std::vector<int>& potomek, std::mt19937 & gen, std::uniform_real_distribution<double>& dist);
+        void mutacja_v2(std::vector<int>& potomek, std::mt19937 & gen);
+        void mutacja_v3(std::vector<int>& potomek, std::mt19937 & gen);
         int funkcjaCelu(std::vector<int>& genom);
         std::vector<int> selekcja(std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych, std::mt19937 gen, std::discrete_distribution<> d);
         std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & populacja, std::vector<int> & wynikiFunkcjiCelu , std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych);
     public:
         EvolutionarySolution(int wielkoscPopulacji/*=100*/, int liczbaGeneracji/*=10000*/, double prawdopodobienstwoMutacji/*=5*/);
         void setOceny(std::vector<int>oceny);
-        void runSolution(int wersjaMutacji);
+        void runSolution(int wersjaMutacji, int seed);
         int getRezultat();
         void piszWynik();
 };

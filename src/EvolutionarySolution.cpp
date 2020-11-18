@@ -62,8 +62,8 @@ discrete_distribution<> EvolutionarySolution::dobraPopulacja(vector<vector<int>>
     discrete_distribution<> d(wynikiFunkcjiCelu.begin(), wynikiFunkcjiCelu.end());
     return d;
 }
-// mutacja kazdego genu osobno , szansa zmiany pm
-void EvolutionarySolution::mutacja(vector<int>& genom ,mt19937 & gen, uniform_real_distribution<double>& dist){
+// mutacja_v1 kazdego genu osobno , szansa zmiany pm
+void EvolutionarySolution::mutacja_v1(vector<int>& genom ,mt19937 & gen, uniform_real_distribution<double>& dist){
     for(unsigned int i = 0 ; i <genom.size();i++){
         double prawd = dist(gen);
         if(genom[i]!=1){
@@ -76,6 +76,42 @@ void EvolutionarySolution::mutacja(vector<int>& genom ,mt19937 & gen, uniform_re
         }
     }
 }
+
+//mutacja rozkladem mormalnym
+void EvolutionarySolution::mutacja_v2(std::vector<int>& genom, std::mt19937 & gen)
+{
+    for(unsigned int i = 0 ; i <genom.size();i++){
+        normal_distribution<> n_d{(double)genom[i], prawdopodobienstwoMutacji};
+        int newValue = n_d(gen);
+        if(newValue < 0)
+        {
+            newValue = -newValue;
+        }
+        else
+        if(newValue == 0)
+        {
+            newValue = 1;
+        }
+        genom[i] = newValue;
+    }
+}
+
+//mutacja rozkladem mormalnym tylko w dol
+void EvolutionarySolution::mutacja_v3(std::vector<int>& genom, std::mt19937 & gen)
+{
+    for(unsigned int i = 0 ; i <genom.size();i++){
+        normal_distribution<> n_d{(double)genom[i], prawdopodobienstwoMutacji};
+        int newValue = genom[i] - abs(genom[i] - n_d(gen));
+        
+        if(newValue <= 0)
+        {
+            newValue = 1;
+        }
+
+        genom[i] = newValue;
+    }
+}
+
 // selekcja osobnika do mutacji , selekcja turniejowa [a=1 , k=2],
 // wazne zeby przed tym wywolac dobraPopulacja , ktora sortuje oraz tworzy rozklad prawdopodobienstwa wyboru poszczegolnych osobnikow
 vector<int> EvolutionarySolution::selekcja( vector<tuple<int , vector<int> > >& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
@@ -119,10 +155,11 @@ vector<vector<int> > EvolutionarySolution::generacjaPopulacji(){
     return populacja;
 }
 
-void EvolutionarySolution::runSolution(int wersjaMutacji)
+void EvolutionarySolution::runSolution(int wersjaMutacji, int seed )
 {
     random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     mt19937 gen(rd());
+    gen.seed(seed);
     
     uniform_real_distribution<double> rozkladJednolity(0, nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
     tworzeniekrotnosci();
@@ -172,7 +209,13 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
             switch (wersjaMutacji)
             {
             case 1:
-                mutacja(rodzic, gen, rozkladJednolity);
+                mutacja_v1(rodzic, gen, rozkladJednolity);
+                break;
+            case 2:
+                mutacja_v2(rodzic, gen);
+                break;
+            case 3:
+                mutacja_v3(rodzic, gen);
                 break;
             default:
                 break;

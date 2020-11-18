@@ -19,7 +19,7 @@ const int NUMBER_OF_TESTS = 70;
 
 const std::string FILE_NAME_BASE = "./in/input";
 const std::string FILE_NAME_BASE_EXTENSION = ".txt";
-const int NUMBER_OF_VERSIONS = 1;
+const int NUMBER_OF_VERSIONS = 3;
 
 const int DEFAULT_WIELKOSC_POPULACJI = 100;
 const int DEFAULT_LICZBA_GENERACJI = 10000;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 		EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
     	eSolution.setOceny(oceny);
 		begin = std::chrono::steady_clock::now();
-		eSolution.runSolution(wersjaMutacji);
+		eSolution.runSolution(wersjaMutacji, 0);
 		end = std::chrono::steady_clock::now();
 		results[i].push_back(parseResault(begin, end, eSolution.getRezultat()));
 		//cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << eSolution.getRezultat() << "\n";
