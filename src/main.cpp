@@ -27,6 +27,7 @@ const int DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 5;
 const int DEFAULT_WERSJA_MUTACJI = 1;
 
 vector<int> czytaniePliku(string sciezka);
+pair<long, long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
 
 int main(int argc, char *argv[])
 {
@@ -86,29 +87,55 @@ int main(int argc, char *argv[])
 	//generujemy testy
 	//TestGenerator::generateTests();
 
+	//miejsce na zapisywanie wynikow
+	vector<pair<long, long> > results[NUMBER_OF_TESTS];
+	
+	//nazwy kolejnych testow
+	vector<string> labels;
+
+	labels.push_back("rozwiazanie iteracyjne");
+	labels.push_back("rozwiazanie ewolucyjne");
+
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
 		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 
-		cout << "rozwiazanie iteracyjne:\n";
+		
+		//cout << "rozwiazanie iteracyjne:\n";
 		IterativeSolution iSolution;
     	iSolution.setMarks(oceny);
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     	iSolution.runSolution();
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << iSolution.getResult() <<"\n";
+		results[i].push_back(parseResault(begin, end, iSolution.getResult()));
+		//results[i].push_back(make_pair(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count(),iSolution.getResult());
 		//iSolution.writeResult();
 
-		cout << "rozwiazanie ewolucyjne:\n";
+		//cout << "rozwiazanie ewolucyjne:\n";
 		EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
     	eSolution.setOceny(oceny);
 		begin = std::chrono::steady_clock::now();
 		eSolution.runSolution(wersjaMutacji);
 		end = std::chrono::steady_clock::now();
-		cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << eSolution.getRezultat() << "\n";
+		results[i].push_back(parseResault(begin, end, eSolution.getRezultat()));
+		//cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << eSolution.getRezultat() << "\n";
 		//eSolution.piszWynik();
 			
-			
+	}
+
+	//wypisujemy rozwiazanie
+	for(string s : labels)
+	{
+		cout << s << "\t";
+	}
+	cout << "\n";
+	for(vector<pair<long, long> > v : results)
+	{
+		for(pair<long, long> p : v)
+		{
+			cout << p.first << "\t" << p.second << "\t";
+		}
+		cout << "\n";
 	}
 
     //vector<int> oceny = czytaniePliku(FILE_NAME_BASE);
@@ -139,4 +166,9 @@ vector<int> czytaniePliku(string sciezka)
         v.push_back(word);
     }
     return v;
+}
+
+pair<long, long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result)
+{
+	return make_pair(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count(), result);
 }
