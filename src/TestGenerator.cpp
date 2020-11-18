@@ -52,7 +52,7 @@ void TestGenerator::randomCase(int numberOfStudents, int maxMark)
         }
         else
         {
-            cout << "nie udalo sie zamisac do pliku " << FILE_BASE + to_string(testIndex) + FILE_EXTENSION << "\n";
+            cout << "nie udalo sie zapisac do pliku " << FILE_BASE + to_string(testIndex) + FILE_EXTENSION << "\n";
         }
         testIndex++;
     }
@@ -85,7 +85,7 @@ void TestGenerator::normalCase(int numberOfStudents, int maxMark, double standar
         }
         else
         {
-            cout << "nie udalo sie zamisac do pliku " << FILE_BASE + to_string(testIndex) + FILE_EXTENSION << "\n";
+            cout << "nie udalo sie zapisac do pliku " << FILE_BASE + to_string(testIndex) + FILE_EXTENSION << "\n";
         }
         testIndex++;
     }

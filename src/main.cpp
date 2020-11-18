@@ -15,7 +15,7 @@
 
 using namespace std;
 
-const int NUMBER_OF_TESTS = 70;
+const int NUMBER_OF_TESTS = 150;
 
 const std::string FILE_NAME_BASE = "./in/input";
 const std::string FILE_NAME_BASE_EXTENSION = ".txt";
@@ -93,33 +93,41 @@ int main(int argc, char *argv[])
 	//nazwy kolejnych testow
 	vector<string> labels;
 
-	labels.push_back("rozwiazanie iteracyjne");
-	labels.push_back("rozwiazanie ewolucyjne");
+	labels.push_back("rozwiazanie iteracyjne czas");
+	labels.push_back("wynik");
+	labels.push_back("ewolucyjne v1 0.2%*i generacje 1000*j populacja 20*k czas");
+	labels.push_back("wynik");
 
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
 		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 
-		
-		//cout << "rozwiazanie iteracyjne:\n";
 		IterativeSolution iSolution;
     	iSolution.setMarks(oceny);
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     	iSolution.runSolution();
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		results[i].push_back(parseResault(begin, end, iSolution.getResult()));
-		//results[i].push_back(make_pair(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count(),iSolution.getResult());
-		//iSolution.writeResult();
 
-		//cout << "rozwiazanie ewolucyjne:\n";
-		EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
-    	eSolution.setOceny(oceny);
-		begin = std::chrono::steady_clock::now();
-		eSolution.runSolution(wersjaMutacji, 0);
-		end = std::chrono::steady_clock::now();
-		results[i].push_back(parseResault(begin, end, eSolution.getRezultat()));
-		//cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << eSolution.getRezultat() << "\n";
-		//eSolution.piszWynik();
+		int populationBase = 20;
+		double propabilityBase = 0.2;
+		int generationsBase = 1000;
+
+		for(int i = 1; (double) i* propabilityBase < 4.0; ++i )
+		{
+			for(int j = 1; j * generationsBase <= 10000; ++j)
+			{
+				for(int k = 1; k * populationBase < 200; ++k)
+				{
+					EvolutionarySolution eSolution(k * populationBase, j * generationsBase, i* propabilityBase);
+					eSolution.setOceny(oceny);
+					begin = std::chrono::steady_clock::now();
+					eSolution.runSolution(1, 0);
+					end = std::chrono::steady_clock::now();
+					results[i].push_back(parseResault(begin, end, eSolution.getRezultat()));
+				}
+			}
+		}
 			
 	}
 
@@ -137,21 +145,6 @@ int main(int argc, char *argv[])
 		}
 		cout << "\n";
 	}
-
-    //vector<int> oceny = czytaniePliku(FILE_NAME_BASE);
-
-
-
-    // EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
-    // eSolution.setOceny(oceny);
-	// eSolution.runSolution(wersjaMutacji);
-	// eSolution.piszWynik();
-
-    // IterativeSolution iSolution;
-    // iSolution.setMarks(oceny);
-    // iSolution.runSolution();
-	// iSolution.writeResult();
-
 
 }
 
