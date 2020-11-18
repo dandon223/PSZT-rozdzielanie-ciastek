@@ -19,7 +19,7 @@ class EvolutionarySolution
 	    int prawdopodobienstwoMutacji;
         std::vector<int> oceny;
         std::vector<int> wynik;
-
+        
         std::vector<int> czytaniePliku(std::string sciezka);
         std::vector<std::vector<int> > generacjaPopulacji(int wielkosc_populacji, std::vector<int> const & oceny);
         void mutacja(std::vector<int>& potomek, int pm, int pm2, std::mt19937 & gen, std::uniform_real_distribution<double>& dist);
@@ -30,6 +30,7 @@ class EvolutionarySolution
         EvolutionarySolution(int wielkoscPopulacji/*=100*/, int liczbaGeneracji/*=10000*/, int prawdopodobienstwoMutacji/*=5*/);
         void setOceny(std::vector<int>oceny);
         void runSolution(int wersjaMutacji);
+        int getRezultat();
         void piszWynik();
 };
 
