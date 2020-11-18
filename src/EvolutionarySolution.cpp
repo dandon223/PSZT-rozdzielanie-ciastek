@@ -186,3 +186,13 @@ void EvolutionarySolution::piszWynik()
 
 
 }
+
+int EvolutionarySolution::getRezultat()
+{
+    int sum = 0;
+    for(int i : wynik)
+    {
+        sum += i;
+    }
+    return sum;
+}

@@ -11,10 +11,14 @@
 
 #include "EvolutionarySolution.hpp"
 #include "IterativeSolution.hpp"
+#include "TestGenerator.hpp"
 
 using namespace std;
 
-const std::string FILE_NAME = "./in/input.txt";
+const int NUMBER_OF_TESTS = 70;
+
+const std::string FILE_NAME_BASE = "./in/input";
+const std::string FILE_NAME_BASE_EXTENSION = ".txt";
 const int NUMBER_OF_VERSIONS = 1;
 
 const int DEFAULT_WIELKOSC_POPULACJI = 100;
@@ -79,17 +83,47 @@ int main(int argc, char *argv[])
 		}
 	}
 
-    vector<int> oceny = czytaniePliku(FILE_NAME);
+	//generujemy testy
+	//TestGenerator::generateTests();
 
-    EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
-    eSolution.setOceny(oceny);
-	eSolution.runSolution(wersjaMutacji);
-	eSolution.piszWynik();
+	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
+	{
+		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 
-    IterativeSolution iSolution;
-    iSolution.setMarks(oceny);
-    iSolution.runSolution();
-	iSolution.writeResult();
+		cout << "rozwiazanie iteracyjne:\n";
+		IterativeSolution iSolution;
+    	iSolution.setMarks(oceny);
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    	iSolution.runSolution();
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << iSolution.getResult() <<"\n";
+		//iSolution.writeResult();
+
+		cout << "rozwiazanie ewolucyjne:\n";
+		EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
+    	eSolution.setOceny(oceny);
+		begin = std::chrono::steady_clock::now();
+		eSolution.runSolution(wersjaMutacji);
+		end = std::chrono::steady_clock::now();
+		cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()<< "; " << eSolution.getRezultat() << "\n";
+		//eSolution.piszWynik();
+			
+			
+	}
+
+    //vector<int> oceny = czytaniePliku(FILE_NAME_BASE);
+
+
+
+    // EvolutionarySolution eSolution(wielkoscPopulacji, liczbaGeneracji, prawdopodobienstwoMutacji);
+    // eSolution.setOceny(oceny);
+	// eSolution.runSolution(wersjaMutacji);
+	// eSolution.piszWynik();
+
+    // IterativeSolution iSolution;
+    // iSolution.setMarks(oceny);
+    // iSolution.runSolution();
+	// iSolution.writeResult();
 
 
 }
