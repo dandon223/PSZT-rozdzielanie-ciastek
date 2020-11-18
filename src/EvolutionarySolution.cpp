@@ -2,16 +2,47 @@
 
 using namespace std;
 
-EvolutionarySolution::EvolutionarySolution(int wielkoscPopulacji = 100, int liczbaGeneracji = 10000, int prawdopodobienstwoMutacji = 5)
+EvolutionarySolution::EvolutionarySolution(int wielkoscPopulacji = 100, int liczbaGeneracji = 10000, double prawdopodobienstwoMutacji = 5.0)
 {
     this->wielkoscPopulacji = wielkoscPopulacji;
     this->liczbaGeneracji = liczbaGeneracji;
     this->prawdopodobienstwoMutacji = prawdopodobienstwoMutacji;
 }
 
-void EvolutionarySolution::setOceny(vector<int>oceny)
+void EvolutionarySolution::setOceny(vector<int>ciagOcen)
 {
-    this->oceny = oceny;
+    this->oceny = ciagOcen;
+}
+void EvolutionarySolution::tworzeniekrotnosci() {
+   // std::cout<<"Oceny przed: \n";
+    //for(int x: this->oceny)
+    //    std::cout<<x<<" ";
+   // std::cout<<endl;
+    int ostatniaOcena = -1;
+    std::vector<int> ocenyBezKrotnosci;
+    for(int ocena: oceny){
+        if(ocena != ostatniaOcena){
+            krotnosci.push_back(1);
+            ocenyBezKrotnosci.push_back(ocena);
+            ostatniaOcena = ocena;
+        }else{
+            krotnosci[krotnosci.size()-1] = krotnosci[krotnosci.size()-1]+1;
+        }
+    }
+    this->oceny = ocenyBezKrotnosci;
+  //  std::cout<<"Oceny po: \n";
+   // for(int x: this->oceny)
+   //     std::cout<<x<<" ";
+   // std::cout<<endl;
+
+}
+void EvolutionarySolution::powrotOcen(){
+    std::vector<int> nowyWynik;
+    for(unsigned int i = 0 ; i <krotnosci.size();i++){
+        for(int j = 0 ; j <krotnosci[i];j++)
+            nowyWynik.push_back(wynik[i]);
+    }
+    this->wynik = nowyWynik;
 }
 
 // przygotowuje dystrubuante pod selekcje turniejowa [a=1 , k=2],
@@ -32,14 +63,14 @@ discrete_distribution<> EvolutionarySolution::dobraPopulacja(vector<vector<int>>
     return d;
 }
 // mutacja kazdego genu osobno , szansa zmiany pm
-void EvolutionarySolution::mutacja(vector<int>& genom , int pm, int pm2,mt19937 & gen, uniform_real_distribution<double>& dist){
+void EvolutionarySolution::mutacja(vector<int>& genom ,mt19937 & gen, uniform_real_distribution<double>& dist){
     for(unsigned int i = 0 ; i <genom.size();i++){
         double prawd = dist(gen);
         if(genom[i]!=1){
-            if(genom[i]>=genom.size()*1.5 && prawd < pm2){
+            if(genom[i]>=genom.size()*1.5 && prawd < prawdopodobienstwoMutacji *2){
                 genom[i] = genom[i] - 2;
             }
-             else if(prawd < pm) {
+             else if(prawd < prawdopodobienstwoMutacji) {
                 genom[i] = genom[i] - 1;
              }
         }
@@ -47,20 +78,20 @@ void EvolutionarySolution::mutacja(vector<int>& genom , int pm, int pm2,mt19937 
 }
 // selekcja osobnika do mutacji , selekcja turniejowa [a=1 , k=2],
 // wazne zeby przed tym wywolac dobraPopulacja , ktora sortuje oraz tworzy rozklad prawdopodobienstwa wyboru poszczegolnych osobnikow
-vector<int> EvolutionarySolution::selekcja(vector<int>& oceny, vector<tuple<int , vector<int> > >& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
+vector<int> EvolutionarySolution::selekcja( vector<tuple<int , vector<int> > >& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
     int liczba1 = d(gen);
     vector<int> rodzic1 = get<1>(zbior_dobrych[liczba1]);
 
     int liczba2 = d(gen);
     vector<int> rodzic2 = get<1>(zbior_dobrych[liczba2]);
 
-    if(funkcjaCelu(rodzic1, oceny) < funkcjaCelu(rodzic2, oceny))
+    if(funkcjaCelu(rodzic1) < funkcjaCelu(rodzic2))
         return rodzic1;
     else
         return rodzic2;
 }
 // ocenia osobnika , naprawia drobne bledy
-int EvolutionarySolution::funkcjaCelu(vector<int> & genom , vector<int> const & oceny){
+int EvolutionarySolution::funkcjaCelu(vector<int> & genom ){
     int suma=0;
     for(unsigned int i =0 ; i <genom.size();i++){
         if(genom[i]<=0 || oceny[i]==1)
@@ -80,9 +111,9 @@ int EvolutionarySolution::funkcjaCelu(vector<int> & genom , vector<int> const & 
 //zczytuje oceny uczniow z pliku
 
 //generuje poczatkowa populacje z ocen uczniow
-vector<vector<int> > EvolutionarySolution::generacjaPopulacji(int wielkosc_populacji, vector<int> const & oceny){
+vector<vector<int> > EvolutionarySolution::generacjaPopulacji(){
     vector<vector<int> > populacja;
-    for(int i=0 ; i <wielkosc_populacji;i++){
+    for(int i=0 ; i <wielkoscPopulacji;i++){
         populacja.push_back(oceny);
     }
     return populacja;
@@ -94,8 +125,8 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
     mt19937 gen(rd());
     
     uniform_real_distribution<double> rozkladJednolity(0, nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
-
-    vector<vector<int>> populacja = generacjaPopulacji(wielkoscPopulacji, oceny);
+    tworzeniekrotnosci();
+    vector<vector<int>> populacja = generacjaPopulacji();
 
     // glowna petla
 
@@ -115,7 +146,7 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
         for(unsigned int i=0 ; i < populacja.size();i++){
         	// for(int gen : populacja[i])
         	//     cout<<gen<<" ";
-            int wynik = funkcjaCelu(populacja[i], oceny);
+            int wynik = funkcjaCelu(populacja[i]);
             if(wynik <minimalnyWynik){
                 minimalnyWynik = wynik;
                 indexDrugiegoNajlepszegoWyniku = indexNajlepszegoWyniku;
@@ -136,19 +167,18 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
         discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
 
         for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
-            vector<int> rodzic = selekcja(oceny, zbiorRozwiazan, gen, rozkladDyskretny);
+            vector<int> rodzic = selekcja(zbiorRozwiazan, gen, rozkladDyskretny);
             vector<int> kopia  = rodzic;
             switch (wersjaMutacji)
             {
             case 1:
-                mutacja(rodzic, prawdopodobienstwoMutacji , prawdopodobienstwoMutacji * 2, gen, rozkladJednolity);
+                mutacja(rodzic, gen, rozkladJednolity);
                 break;
-            
             default:
                 break;
             }
             
-            if(funkcjaCelu(rodzic, oceny) == INT_MAX)
+            if(funkcjaCelu(rodzic) == INT_MAX)
                 nowaPopulacja.push_back(kopia);
             else
                 nowaPopulacja.push_back(rodzic);
@@ -159,13 +189,14 @@ void EvolutionarySolution::runSolution(int wersjaMutacji)
     int minimalnyWynik=INT_MAX;
     int indexWyniku = 0;
     for(unsigned int i=0 ; i < populacja.size();i++){
-        int wynik = funkcjaCelu(populacja[i], oceny);
+        int wynik = funkcjaCelu(populacja[i]);
         if(wynik <minimalnyWynik){
             minimalnyWynik = wynik;
             indexWyniku = i;
         }
     }
     wynik = populacja[indexWyniku];
+    powrotOcen();
     // cout<<"\n============================\n";
     // cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
     // for(int x : genom)
