@@ -10,7 +10,14 @@
 #include <algorithm>
 #include <cfloat>
 #include <iostream>
+#include <chrono>
 
+struct MileStone
+{
+    long long time;
+    int generations;
+    int result;
+};
 class EvolutionarySolution
 {
     private:
@@ -20,6 +27,7 @@ class EvolutionarySolution
         std::vector<int> oceny;
         std::vector<int> wynik;
         std::vector<int> krotnosci;
+        std::vector<MileStone> milestones;
 
         std::vector<std::vector<int> > generacjaPopulacji();
         void tworzeniekrotnosci();
@@ -30,12 +38,14 @@ class EvolutionarySolution
         int funkcjaCelu(std::vector<int>& genom);
         std::vector<int> selekcja(std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych, std::mt19937 gen, std::discrete_distribution<> d);
         std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & populacja, std::vector<int> & wynikiFunkcjiCelu , std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych);
+        MileStone getMileStone(int generation, std::chrono::steady_clock::time_point begin);
     public:
         EvolutionarySolution(int wielkoscPopulacji/*=100*/, int liczbaGeneracji/*=10000*/, double prawdopodobienstwoMutacji/*=5*/);
         void setOceny(std::vector<int>oceny);
-        void runSolution(int wersjaMutacji, int seed);
+        void runSolution(int wersjaMutacji, int seed, std::chrono::steady_clock::time_point begin, long long period, long long times);
         int getRezultat();
         void piszWynik();
+        std::vector<MileStone> getMilestones();
 };
 
 #endif

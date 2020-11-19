@@ -155,7 +155,7 @@ vector<vector<int> > EvolutionarySolution::generacjaPopulacji(){
     return populacja;
 }
 
-void EvolutionarySolution::runSolution(int wersjaMutacji, int seed )
+void EvolutionarySolution::runSolution(int wersjaMutacji, int seed, std::chrono::steady_clock::time_point begin, long long period, long long times )
 {
     random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     mt19937 gen(rd());
@@ -165,81 +165,104 @@ void EvolutionarySolution::runSolution(int wersjaMutacji, int seed )
     tworzeniekrotnosci();
     vector<vector<int>> populacja = generacjaPopulacji();
 
+    int generationIndex = 0;
+
     // glowna petla
+    for(long long i = 1 ; i <= times; i++)
+    {
+        while( std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin).count() < i *period )
+        {
+            vector<int> wynikiFunkcjiCelu;
+            vector<vector<int>> nowaPopulacja;
+            nowaPopulacja.clear();
+            wynikiFunkcjiCelu.clear();
 
-    for(int i = 0 ; i < liczbaGeneracji; i++){
-        // cout << "generacja nr " << i << "\n";
-        vector<int> wynikiFunkcjiCelu;
-        vector<vector<int>> nowaPopulacja;
-        nowaPopulacja.clear();
-        wynikiFunkcjiCelu.clear();
+            int minimalnyWynik=INT_MAX;
+            int indexNajlepszegoWyniku = 0;
+            int indexDrugiegoNajlepszegoWyniku = 0;
 
+            // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
+
+            for(unsigned int i=0 ; i < populacja.size();i++){
+                // for(int gen : populacja[i])
+                //     cout<<gen<<" ";
+                int wynik = funkcjaCelu(populacja[i]);
+                if(wynik <minimalnyWynik){
+                    minimalnyWynik = wynik;
+                    indexDrugiegoNajlepszegoWyniku = indexNajlepszegoWyniku;
+                    indexNajlepszegoWyniku = i;
+                }
+                wynikiFunkcjiCelu.push_back(wynik);
+                // cout <<"|" <<wynik<<"\n";
+            }
+            
+            // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
+            nowaPopulacja.push_back(populacja[indexNajlepszegoWyniku]);
+            nowaPopulacja.push_back(populacja[indexDrugiegoNajlepszegoWyniku]);
+
+            vector<tuple<int , vector<int>>> zbiorRozwiazan;
+            zbiorRozwiazan.clear();
+
+            // dystrybucja dyskretna po ktorej bedziemy wybierac kolejnych osobnikow do selekcji
+            discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
+
+            for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
+                vector<int> rodzic = selekcja(zbiorRozwiazan, gen, rozkladDyskretny);
+                vector<int> kopia  = rodzic;
+                switch (wersjaMutacji)
+                {
+                case 1:
+                    mutacja_v1(rodzic, gen, rozkladJednolity);
+                    break;
+                case 2:
+                    mutacja_v2(rodzic, gen);
+                    break;
+                case 3:
+                    mutacja_v3(rodzic, gen);
+                    break;
+                default:
+                    break;
+                }
+                
+                if(funkcjaCelu(rodzic) == INT_MAX)
+                    nowaPopulacja.push_back(kopia);
+                else
+                    nowaPopulacja.push_back(rodzic);
+            }
+            populacja = nowaPopulacja;
+            generationIndex++;
+            
+            if(generationIndex % liczbaGeneracji == 0)
+            {
+                vector<int>wynikiFunkcjiCelu;
+                int minimalnyWynik=INT_MAX;
+                int indexWyniku = 0;
+                for(unsigned int i=0 ; i < populacja.size();i++){
+                    int wynik = funkcjaCelu(populacja[i]);
+                    if(wynik <minimalnyWynik){
+                        minimalnyWynik = wynik;
+                        indexWyniku = i;
+                    }
+                }
+                wynik = populacja[indexWyniku];
+                milestones.push_back(getMileStone(generationIndex, begin));
+            }
+        }
+        vector<int>wynikiFunkcjiCelu;
         int minimalnyWynik=INT_MAX;
-        int indexNajlepszegoWyniku = 0;
-        int indexDrugiegoNajlepszegoWyniku = 0;
-
-        // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
-
+        int indexWyniku = 0;
         for(unsigned int i=0 ; i < populacja.size();i++){
-        	// for(int gen : populacja[i])
-        	//     cout<<gen<<" ";
             int wynik = funkcjaCelu(populacja[i]);
             if(wynik <minimalnyWynik){
                 minimalnyWynik = wynik;
-                indexDrugiegoNajlepszegoWyniku = indexNajlepszegoWyniku;
-                indexNajlepszegoWyniku = i;
+                indexWyniku = i;
             }
-            wynikiFunkcjiCelu.push_back(wynik);
-            // cout <<"|" <<wynik<<"\n";
         }
-        
-        // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
-        nowaPopulacja.push_back(populacja[indexNajlepszegoWyniku]);
-        nowaPopulacja.push_back(populacja[indexDrugiegoNajlepszegoWyniku]);
-
-        vector<tuple<int , vector<int>>> zbiorRozwiazan;
-        zbiorRozwiazan.clear();
-
-        // dystrybucja dyskretna po ktorej bedziemy wybierac kolejnych osobnikow do selekcji
-        discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
-
-        for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
-            vector<int> rodzic = selekcja(zbiorRozwiazan, gen, rozkladDyskretny);
-            vector<int> kopia  = rodzic;
-            switch (wersjaMutacji)
-            {
-            case 1:
-                mutacja_v1(rodzic, gen, rozkladJednolity);
-                break;
-            case 2:
-                mutacja_v2(rodzic, gen);
-                break;
-            case 3:
-                mutacja_v3(rodzic, gen);
-                break;
-            default:
-                break;
-            }
-            
-            if(funkcjaCelu(rodzic) == INT_MAX)
-                nowaPopulacja.push_back(kopia);
-            else
-                nowaPopulacja.push_back(rodzic);
-        }
-        populacja = nowaPopulacja;
+        wynik = populacja[indexWyniku];
+        milestones.push_back(getMileStone(generationIndex, begin));
     }
-    vector<int>wynikiFunkcjiCelu;
-    int minimalnyWynik=INT_MAX;
-    int indexWyniku = 0;
-    for(unsigned int i=0 ; i < populacja.size();i++){
-        int wynik = funkcjaCelu(populacja[i]);
-        if(wynik <minimalnyWynik){
-            minimalnyWynik = wynik;
-            indexWyniku = i;
-        }
-    }
-    wynik = populacja[indexWyniku];
     powrotOcen();
+    
     // cout<<"\n============================\n";
     // cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
     // for(int x : genom)
@@ -269,4 +292,26 @@ int EvolutionarySolution::getRezultat()
         sum += i;
     }
     return sum;
+}
+
+MileStone EvolutionarySolution::getMileStone(int generation, std::chrono::steady_clock::time_point begin)
+{
+    int sum = 0;
+    for( unsigned int i = 0; i < wynik.size(); ++i )
+    {
+        sum += wynik[i] * krotnosci[i];
+    }
+
+    MileStone ms;
+    ms.generations = generation;
+    ms.result = sum;
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    ms.time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+
+    return ms;
+}
+
+vector<MileStone> EvolutionarySolution::getMilestones()
+{
+    return milestones;
 }

@@ -25,9 +25,14 @@ const int DEFAULT_WIELKOSC_POPULACJI = 100;
 const int DEFAULT_LICZBA_GENERACJI = 10000;
 const int DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 5;
 const int DEFAULT_WERSJA_MUTACJI = 1;
+const int DEFAULT_PERIOD = 100000;
+const int DEFAULT_TIMES = 30;
+
+const int NUMBER_OF_MUTATION_FACTOR_TESTS = 10;
+const int NUMBER_OF_POPULATION_TESTS = 7;
 
 vector<int> czytaniePliku(string sciezka);
-pair<long, long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
+pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
 
 int main(int argc, char *argv[])
 {
@@ -39,6 +44,11 @@ int main(int argc, char *argv[])
 	int liczbaGeneracji = DEFAULT_LICZBA_GENERACJI;
 	double prawdopodobienstwoMutacji = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
 	int wersjaMutacji = DEFAULT_WERSJA_MUTACJI;
+
+	int period = DEFAULT_PERIOD;
+	int times = DEFAULT_TIMES;
+
+	vector<int>versions;
 	
 	//analiza flag
 	for(int i = 1; i < argc; i+=2 )
@@ -47,15 +57,26 @@ int main(int argc, char *argv[])
 		{
 			switch(argv[i][1])
 			{
-				case 'p': //populacja
-					if(stoi(argv[i+1]) < 5)
+				case 'p': //period - okres zbieranie wynikow
+					if(stof(argv[i+1]) <= 0)
 					{
-						cout << "populacja musi byc nie mniejsza niz 5\n";
+						cout << "okres musi byc wiekszy od 0\n";
 						return 0;
 					}
 					else
 					{
-						wielkoscPopulacji = stoi(argv[i+1]);
+						period = stof(argv[i+1]);
+					}
+					break;
+				case 't': //times - ile razy wykonujemy okres
+					if(stoi(argv[i+1]) <= 0)
+					{
+						cout << "ilosc razy musi byc wiekszy od 0\n";
+						return 0;
+					}
+					else
+					{
+						times = stoi(argv[i+1]);
 					}
 					break;
 				case 'g': //liczba generacji
@@ -72,7 +93,7 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						wersjaMutacji = stoi(argv[i+1]);
+						versions.push_back(stoi(argv[i+1]));
 					}
 					break;
 			}
@@ -87,17 +108,8 @@ int main(int argc, char *argv[])
 	//generujemy testy
 	//TestGenerator::generateTests();
 
-	//miejsce na zapisywanie wynikow
-	vector<pair<long, long> > results[NUMBER_OF_TESTS];
-	
-	//nazwy kolejnych testow
-	vector<string> labels;
-
-	labels.push_back("rozwiazanie iteracyjne czas");
-	labels.push_back("wynik");
-	labels.push_back("ewolucyjne v1 0.2%*i generacje 1000*j populacja 20*k czas");
-	labels.push_back("wynik");
-
+	//wywoloanie iteracyjne
+	pair<long long, long long> iterationResults[NUMBER_OF_TESTS];
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
 		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
@@ -107,43 +119,87 @@ int main(int argc, char *argv[])
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     	iSolution.runSolution();
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		results[i].push_back(parseResault(begin, end, iSolution.getResult()));
+		iterationResults[i] = parseResault(begin, end, iSolution.getResult());
+	}
 
-		int populationBase = 20;
-		double propabilityBase = 0.2;
-		int generationsBase = 1000;
+	/***************************************************
+	 * rozwiazania ewolucyjne
+	***************************************************/
 
-		for(int i = 1; (double) i* propabilityBase < 4.0; ++i )
+	//miejsce na zapisywanie wynikow ewolucyjnych
+
+	//dla kazdego pliku [] przechowujemy wektor roznych caseow testowania
+	//w kazdym vectorze - vector wynikow
+	vector< vector<MileStone> > results[NUMBER_OF_TESTS]; 
+	
+	//nazwy kolejnych plikow
+	vector<string> fileNames;
+
+	//labels
+	vector<string> labels;
+
+	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
+	{
+		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
+
+		int populationBase = 15;
+		double propabilityBase = 0.3;
+		int generationsBase = 500;
+
+		for(int j = 1; j <= NUMBER_OF_MUTATION_FACTOR_TESTS; ++j )
 		{
-			for(int j = 1; j * generationsBase <= 10000; ++j)
+			for(int k = 1; k <= NUMBER_OF_POPULATION_TESTS; ++k)
 			{
-				for(int k = 1; k * populationBase < 200; ++k)
+				for(int version : versions)
 				{
-					EvolutionarySolution eSolution(k * populationBase, j * generationsBase, i* propabilityBase);
+					if( i == 0 ) // dodajemy kolejna nazwe pliku
+					{
+						fileNames.push_back("./out/outV" + to_string(version) + "m" + to_string(j* propabilityBase) + "p" + to_string(k*populationBase) + ".txt" );
+						labels.push_back("versja nr " + to_string(version) + ";wspolczynnik mutacji " + to_string(j* propabilityBase) + 
+						";wielkosc populacji " + to_string(k*populationBase) );
+					
+					}
+					EvolutionarySolution eSolution( k * populationBase, generationsBase, j* propabilityBase);
 					eSolution.setOceny(oceny);
-					begin = std::chrono::steady_clock::now();
-					eSolution.runSolution(1, 0);
-					end = std::chrono::steady_clock::now();
-					results[i].push_back(parseResault(begin, end, eSolution.getRezultat()));
+					std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+					eSolution.runSolution(version, 0, begin, period, times);
+					results[i].push_back(eSolution.getMilestones());
 				}
 			}
 		}
 			
 	}
 
-	//wypisujemy rozwiazanie
-	for(string s : labels)
+	//wypisujemy rozwiazanie iteracyjne
+	fstream itFile;
+	itFile.open("./out/outIt.txt", ios::out);
+	if(itFile.good())
 	{
-		cout << s << "\t";
-	}
-	cout << "\n";
-	for(vector<pair<long, long> > v : results)
-	{
-		for(pair<long, long> p : v)
+		itFile << "iteracyjne wynik\tczas\n";
+		for(pair<long long, long long> p : iterationResults)
 		{
-			cout << p.first << "\t" << p.second << "\t";
+			itFile << p.first << "\t" << p.second <<"\n";
 		}
-		cout << "\n";
+	}
+
+	//wypisujemy rozwiazania ewolucyjne
+	for(unsigned int i = 0; i < fileNames.size(); ++i )
+	{
+		fstream evFile;
+		evFile.open(fileNames[i], ios::out);
+		if(evFile.good())
+		{
+			evFile << labels[i] << "\n";
+			for(int j = 0; j < NUMBER_OF_TESTS; ++j)
+			{
+				for(unsigned int k = 0; k < results[j][i].size(); ++k )
+				{
+					evFile << results[j][i][k].generations << "\t" << results[j][i][k].time << "\t" << results[j][i][k].result <<"\t";
+				}
+				evFile << "\n";
+				
+			}
+		}
 	}
 
 }
@@ -161,7 +217,7 @@ vector<int> czytaniePliku(string sciezka)
     return v;
 }
 
-pair<long, long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result)
+pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result)
 {
 	return make_pair(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count(), result);
 }
