@@ -16,21 +16,21 @@ void TestGenerator::generateTests()
     std::mt19937 gen{rd()};
     gen.seed(seed);
 
-    randomCase(20, 100); //liczba osob w grupie: 20; oceny calkowicie losowe od 1 do 100
-    normalCase(20, 100, 10, &gen);   //iczba osob w grupie: 20; oceny losowe od 1 do 100 z rozkladem normalnym (50,10)
-    randomCase(200, 100); //liczba osob w grupie: 200; oceny calkowicie losowe od 1 do 100
-    normalCase(200, 100, 10, &gen);   //liczba osob w grupie: 200; oceny losowe od 1 do 100 z rozkladem normalnym (50,10)
-    randomCase(2000, 100); //liczba osob w grupie: 2000; oceny calkowicie losowe od 1 do 100
-    normalCase(2000, 100, 10, &gen);   //liczba osob w grupie: 2000; oceny losowe od 1 do 100 z rozkladem normalnym (50,10)
-    randomCase(20, 6); //liczba osob w grupie: 20; oceny calkowicie losowe od 1 do 6
-    normalCase(20, 6, 1.5, &gen); //liczba osob w grupie: 20; oceny losowe od 1 do 6 z rozkladem normalnym (3.5, 1.5)
-    randomCase(200, 6); //liczba osob w grupie: 200; oceny calkowicie losowe od 1 do 6
-    normalCase(200, 6, 1.5, &gen); //liczba osob w grupie: 200; oceny losowe od 1 do 6 z rozkladem normalnym (3.5, 1.5)
-    randomCase(2000, 6); //liczba osob w grupie: 2000; oceny calkowicie losowe od 1 do 6
-    normalCase(2000, 6, 1.5, &gen); //liczba osob w grupie: 2000; oceny losowe od 1 do 6 z rozkladem normalnym (3.5, 1.5)
-    normalCase(20, 199, 15, &gen); //rozklad jak IQ Wechslera - liczby losowe z rozkladem normalnym o sredniej 100 i odchyleniu standardowym 15; 20 osob
-    normalCase(200, 199, 15, &gen); //jak w poprzednim tylko 200 osob
-    normalCase(2000, 199, 15, &gen); //jak w poprzednim tylko 2000 osob
+    randomCase(25, 100); //liczba osob w grupie: 25; oceny calkowicie losowe od 1 do 100
+    normalCase(25, 100, 10, &gen);   //iczba osob w grupie: 25; oceny losowe od 1 do 100 z rozkladem normalnym (50,10)
+    randomCase(100, 100); //liczba osob w grupie: 100; oceny calkowicie losowe od 1 do 100
+    normalCase(100, 100, 10, &gen);   //liczba osob w grupie: 100; oceny losowe od 1 do 100 z rozkladem normalnym (50,10)
+    randomCase(500, 100); //liczba osob w grupie: 500; oceny calkowicie losowe od 1 do 100
+    normalCase(500, 100, 10, &gen);   //liczba osob w grupie: 500; oceny losowe od 1 do 100 z rozkladem normalnym (50,10)
+    randomCase(25, 6); //liczba osob w grupie: 25; oceny calkowicie losowe od 1 do 6
+    normalCase(25, 6, 1.5, &gen); //liczba osob w grupie: 25; oceny losowe od 1 do 6 z rozkladem normalnym (3.5, 1.5)
+    randomCase(100, 6); //liczba osob w grupie: 100; oceny calkowicie losowe od 1 do 6
+    normalCase(100, 6, 1.5, &gen); //liczba osob w grupie: 100; oceny losowe od 1 do 6 z rozkladem normalnym (3.5, 1.5)
+    randomCase(500, 6); //liczba osob w grupie: 500; oceny calkowicie losowe od 1 do 6
+    normalCase(500, 6, 1.5, &gen); //liczba osob w grupie: 500; oceny losowe od 1 do 6 z rozkladem normalnym (3.5, 1.5)
+    normalCase(25, 199, 15, &gen); //rozklad jak IQ Wechslera - liczby losowe z rozkladem normalnym o sredniej 100 i odchyleniu standardowym 15; 25 osob
+    normalCase(100, 199, 15, &gen); //jak w poprzednim tylko 100 osob
+    normalCase(500, 199, 15, &gen); //jak w poprzednim tylko 500 osob
     
 }
 
