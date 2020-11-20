@@ -16,20 +16,20 @@
 using namespace std;
 
 const int NUMBER_OF_TESTS = 15;
-const int NUMBER_OF_SEEDS = 10;
+const int NUMBER_OF_SEEDS = 5;
 
 const std::string FILE_NAME_BASE = "./in/input";
 const std::string FILE_NAME_BASE_EXTENSION = ".txt";
 const int NUMBER_OF_VERSIONS = 3;
 
 const int DEFAULT_WIELKOSC_POPULACJI = 15;
-const double DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 0.3;
+const double DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 0.05;
 const int DEFAULT_WERSJA_MUTACJI = 1;
 const int DEFAULT_PERIOD = 100000;
-const int DEFAULT_TIMES = 25;
+const int DEFAULT_TIMES = 35;
 
-const int NUMBER_OF_MUTATION_FACTOR_TESTS = 10;
-const int NUMBER_OF_POPULATION_TESTS = 4;
+const int NUMBER_OF_MUTATION_FACTOR_TESTS = 8;
+const int NUMBER_OF_POPULATION_TESTS = 3;
 
 vector<int> czytaniePliku(string sciezka);
 pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
@@ -138,34 +138,34 @@ int main(int argc, char *argv[])
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
 		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
-
-		int populationBase = DEFAULT_WIELKOSC_POPULACJI;
+		
 		double propabilityBase = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
-
 		for(int j = 1; j <= NUMBER_OF_MUTATION_FACTOR_TESTS; ++j )
 		{
+			int populationBase = DEFAULT_WIELKOSC_POPULACJI;
 			for(int k = 1; k <= NUMBER_OF_POPULATION_TESTS; ++k)
 			{
 				for(int version : versions)
 				{
 					if( i == 0 ) // dodajemy kolejna nazwe pliku
 					{
-						fileNames.push_back("./out/outV" + to_string(version) + "m" + to_string(j* propabilityBase) + "p" + to_string(k*populationBase) + ".txt" );
-						labels.push_back("versja nr " + to_string(version) + ";wspolczynnik mutacji " + to_string(j* propabilityBase) + 
-						";wielkosc populacji " + to_string(k*populationBase) );
+						fileNames.push_back("./out/outV" + to_string(version) + "m" + to_string(propabilityBase) + "p" + to_string(populationBase) + ".txt" );
+						labels.push_back("wersja nr " + to_string(version) + ";wspolczynnik mutacji " + to_string(propabilityBase) + 
+						";wielkosc populacji " + to_string(populationBase) );
 					
 					}
-
 					for( int l = 0; l < NUMBER_OF_SEEDS; ++l ) // zmienne seedy
 					{
-						EvolutionarySolution eSolution( k * populationBase, j* propabilityBase);
+						EvolutionarySolution eSolution( populationBase, propabilityBase);
 						eSolution.setOceny(oceny);
 						std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 						eSolution.runSolution(version, l, begin, period, times);
-						results[10 * i + l].push_back(eSolution.getMilestones());
+						results[NUMBER_OF_SEEDS * i + l].push_back(eSolution.getMilestones());
 					}
 				}
+				populationBase *= 2;
 			}
+			propabilityBase *= 2;
 		}
 
 	}
