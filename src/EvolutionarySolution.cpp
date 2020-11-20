@@ -2,7 +2,7 @@
 
 using namespace std;
 
-EvolutionarySolution::EvolutionarySolution(int wielkoscPopulacji = 100, int liczbaGeneracji = 10000, double prawdopodobienstwoMutacji = 5.0)
+EvolutionarySolution::EvolutionarySolution(int wielkoscPopulacji = 100, double prawdopodobienstwoMutacji = 5.0)
 {
     this->wielkoscPopulacji = wielkoscPopulacji;
     this->liczbaGeneracji = liczbaGeneracji;
@@ -232,21 +232,6 @@ void EvolutionarySolution::runSolution(int wersjaMutacji, int seed, std::chrono:
             populacja = nowaPopulacja;
             generationIndex++;
             
-            if(generationIndex % liczbaGeneracji == 0)
-            {
-                vector<int>wynikiFunkcjiCelu;
-                int minimalnyWynik=INT_MAX;
-                int indexWyniku = 0;
-                for(unsigned int i=0 ; i < populacja.size();i++){
-                    int wynik = funkcjaCelu(populacja[i]);
-                    if(wynik <minimalnyWynik){
-                        minimalnyWynik = wynik;
-                        indexWyniku = i;
-                    }
-                }
-                wynik = populacja[indexWyniku];
-                milestones.push_back(getMileStone(generationIndex, begin));
-            }
         }
         vector<int>wynikiFunkcjiCelu;
         int minimalnyWynik=INT_MAX;

@@ -40,7 +40,7 @@ class EvolutionarySolution
         std::discrete_distribution<> dobraPopulacja(std::vector<std::vector<int>> & populacja, std::vector<int> & wynikiFunkcjiCelu , std::vector<std::tuple<int , std::vector<int> > >& zbior_dobrych);
         MileStone getMileStone(int generation, std::chrono::steady_clock::time_point begin);
     public:
-        EvolutionarySolution(int wielkoscPopulacji/*=100*/, int liczbaGeneracji/*=10000*/, double prawdopodobienstwoMutacji/*=5*/);
+        EvolutionarySolution(int wielkoscPopulacji/*=100*/, double prawdopodobienstwoMutacji/*=5*/);
         void setOceny(std::vector<int>oceny);
         void runSolution(int wersjaMutacji, int seed, std::chrono::steady_clock::time_point begin, long long period, long long times);
         int getRezultat();

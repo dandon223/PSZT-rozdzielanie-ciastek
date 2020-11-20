@@ -6,7 +6,7 @@
 class TestGenerator
 {
 private:
-    static const int TESTS_IN_SET = 10;
+    static const int TESTS_IN_SET = 1;
 
     static int testIndex;
     static int seed;

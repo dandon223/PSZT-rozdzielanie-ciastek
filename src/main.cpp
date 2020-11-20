@@ -15,21 +15,21 @@
 
 using namespace std;
 
-const int NUMBER_OF_TESTS = 150;
+const int NUMBER_OF_TESTS = 15;
+const int NUMBER_OF_SEEDS = 10;
 
 const std::string FILE_NAME_BASE = "./in/input";
 const std::string FILE_NAME_BASE_EXTENSION = ".txt";
 const int NUMBER_OF_VERSIONS = 3;
 
-const int DEFAULT_WIELKOSC_POPULACJI = 100;
-const int DEFAULT_LICZBA_GENERACJI = 10000;
-const int DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 5;
+const int DEFAULT_WIELKOSC_POPULACJI = 15;
+const double DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 0.3;
 const int DEFAULT_WERSJA_MUTACJI = 1;
 const int DEFAULT_PERIOD = 100000;
-const int DEFAULT_TIMES = 30;
+const int DEFAULT_TIMES = 25;
 
 const int NUMBER_OF_MUTATION_FACTOR_TESTS = 10;
-const int NUMBER_OF_POPULATION_TESTS = 7;
+const int NUMBER_OF_POPULATION_TESTS = 4;
 
 vector<int> czytaniePliku(string sciezka);
 pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
@@ -38,12 +38,6 @@ int main(int argc, char *argv[])
 {
     ios_base::sync_with_stdio(0);
 	cin.tie(NULL);
-
-	//wartosci domyslne
-	int wielkoscPopulacji = DEFAULT_WIELKOSC_POPULACJI;
-	int liczbaGeneracji = DEFAULT_LICZBA_GENERACJI;
-	double prawdopodobienstwoMutacji = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
-	int wersjaMutacji = DEFAULT_WERSJA_MUTACJI;
 
 	int period = DEFAULT_PERIOD;
 	int times = DEFAULT_TIMES;
@@ -79,12 +73,6 @@ int main(int argc, char *argv[])
 						times = stoi(argv[i+1]);
 					}
 					break;
-				case 'g': //liczba generacji
-					liczbaGeneracji = stoi(argv[i+1]);
-					break;
-				case 'm': //prawdopodobienstwo mutacji
-					prawdopodobienstwoMutacji = stof(argv[i+1]);
-					break;
 				case 'v': //wersja mutacji
 					if(stoi(argv[i+1]) > NUMBER_OF_VERSIONS || stoi(argv[i+1]) < 0)
 					{
@@ -96,7 +84,19 @@ int main(int argc, char *argv[])
 						versions.push_back(stoi(argv[i+1]));
 					}
 					break;
+				case 'g'://wlaczenie generowania testow
+					//generujemy testy
+					TestGenerator::generateTests();
+					--i;
+					break;
 			}
+		}
+		else
+		if(argv[i][1] == 'g') //wlaczenie generowania testow
+		{
+			//generujemy testy
+			TestGenerator::generateTests();
+			--i;
 		}
 		else
 		{
@@ -104,9 +104,6 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
-
-	//generujemy testy
-	//TestGenerator::generateTests();
 
 	//wywoloanie iteracyjne
 	pair<long long, long long> iterationResults[NUMBER_OF_TESTS];
@@ -130,7 +127,7 @@ int main(int argc, char *argv[])
 
 	//dla kazdego pliku [] przechowujemy wektor roznych caseow testowania
 	//w kazdym vectorze - vector wynikow
-	vector< vector<MileStone> > results[NUMBER_OF_TESTS]; 
+	vector< vector<MileStone> > results[NUMBER_OF_TESTS * NUMBER_OF_SEEDS]; 
 	
 	//nazwy kolejnych plikow
 	vector<string> fileNames;
@@ -142,9 +139,8 @@ int main(int argc, char *argv[])
 	{
 		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 
-		int populationBase = 15;
-		double propabilityBase = 0.3;
-		int generationsBase = 500;
+		int populationBase = DEFAULT_WIELKOSC_POPULACJI;
+		double propabilityBase = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
 
 		for(int j = 1; j <= NUMBER_OF_MUTATION_FACTOR_TESTS; ++j )
 		{
@@ -159,15 +155,19 @@ int main(int argc, char *argv[])
 						";wielkosc populacji " + to_string(k*populationBase) );
 					
 					}
-					EvolutionarySolution eSolution( k * populationBase, generationsBase, j* propabilityBase);
-					eSolution.setOceny(oceny);
-					std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-					eSolution.runSolution(version, 0, begin, period, times);
-					results[i].push_back(eSolution.getMilestones());
+
+					for( int l = 0; l < NUMBER_OF_SEEDS; ++l ) // zmienne seedy
+					{
+						EvolutionarySolution eSolution( k * populationBase, j* propabilityBase);
+						eSolution.setOceny(oceny);
+						std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+						eSolution.runSolution(version, l, begin, period, times);
+						results[10 * i + l].push_back(eSolution.getMilestones());
+					}
 				}
 			}
 		}
-			
+
 	}
 
 	//wypisujemy rozwiazanie iteracyjne
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 		if(evFile.good())
 		{
 			evFile << labels[i] << "\n";
-			for(int j = 0; j < NUMBER_OF_TESTS; ++j)
+			for(int j = 0; j < NUMBER_OF_TESTS * NUMBER_OF_SEEDS; ++j)
 			{
 				for(unsigned int k = 0; k < results[j][i].size(); ++k )
 				{
