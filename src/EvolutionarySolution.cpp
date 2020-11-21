@@ -72,7 +72,7 @@ void EvolutionarySolution::mutation_v2(std::vector<int>& genome, std::mt19937 & 
 {
     for(unsigned int i = 0 ; i <genome.size();i++){
         normal_distribution<> n_d{(double)genome[i], mutationFactor};
-        int newValue = n_d(gen);
+        int newValue = round(n_d(gen));
         if(newValue < 0)
         {
             newValue = -newValue;
@@ -91,7 +91,7 @@ void EvolutionarySolution::mutation_v3(std::vector<int>& genome, std::mt19937 & 
 {
     for(unsigned int i = 0 ; i <genome.size();i++){
         normal_distribution<> n_d{(double)genome[i], mutationFactor};
-        int tmp = n_d(gene);
+        int tmp = round(n_d(gene));
         int newValue = genome[i] - abs(genome[i] - tmp);
         
         if(newValue <= 0)
