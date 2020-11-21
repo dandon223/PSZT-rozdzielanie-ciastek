@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 #include <random>
-#include<tuple>
+#include <tuple>
 #include <cfloat>
 #include <climits>
 
@@ -25,13 +25,13 @@ const int NUMBER_OF_VERSIONS = 3;
 const int DEFAULT_WIELKOSC_POPULACJI = 15;
 const double DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 0.05;
 const int DEFAULT_WERSJA_MUTACJI = 1;
-const int DEFAULT_PERIOD = 100000;
+const int DEFAULT_PERIOD = 10;
 const int DEFAULT_TIMES = 35;
 
 const int NUMBER_OF_MUTATION_FACTOR_TESTS = 8;
 const int NUMBER_OF_POPULATION_TESTS = 3;
 
-vector<int> czytaniePliku(string sciezka);
+vector<int> readFile(string fileName);
 pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
 
 int main(int argc, char *argv[])
@@ -109,10 +109,9 @@ int main(int argc, char *argv[])
 	pair<long long, long long> iterationResults[NUMBER_OF_TESTS];
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
-		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
+		vector<int> marks = readFile(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 
-		IterativeSolution iSolution;
-    	iSolution.setMarks(oceny);
+		IterativeSolution iSolution(marks);
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     	iSolution.runSolution();
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
 
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
-		vector<int> oceny = czytaniePliku(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
+		vector<int> marks = readFile(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 		
 		double propabilityBase = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
 		for(int j = 1; j <= NUMBER_OF_MUTATION_FACTOR_TESTS; ++j )
@@ -156,8 +155,7 @@ int main(int argc, char *argv[])
 					}
 					for( int l = 0; l < NUMBER_OF_SEEDS; ++l ) // zmienne seedy
 					{
-						EvolutionarySolution eSolution( populationBase, propabilityBase);
-						eSolution.setOceny(oceny);
+						EvolutionarySolution eSolution(marks, populationBase, propabilityBase);
 						std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 						eSolution.runSolution(version, l, begin, period, times);
 						results[NUMBER_OF_SEEDS * i + l].push_back(eSolution.getMilestones());
@@ -204,11 +202,11 @@ int main(int argc, char *argv[])
 
 }
 
-vector<int> czytaniePliku(string sciezka)
+vector<int> readFile(string fileName)
 {
     vector<int> v;
     ifstream file;
-    file.open (sciezka);
+    file.open (fileName);
     int word;
     while (file >> word)
     {
