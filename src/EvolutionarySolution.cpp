@@ -101,7 +101,8 @@ void EvolutionarySolution::mutacja_v3(std::vector<int>& genom, std::mt19937 & ge
 {
     for(unsigned int i = 0 ; i <genom.size();i++){
         normal_distribution<> n_d{(double)genom[i], prawdopodobienstwoMutacji};
-        int newValue = genom[i] - abs(genom[i] - n_d(gen));
+        int tmp = n_d(gen);
+        int newValue = genom[i] - abs(genom[i] - tmp);
         
         if(newValue <= 0)
         {
