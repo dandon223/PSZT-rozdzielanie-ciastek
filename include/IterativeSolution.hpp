@@ -14,8 +14,7 @@ class IterativeSolution
         std::vector<std::pair<int, int> >reduceProblem();
 
     public:
-        IterativeSolution();
-        void setMarks(std::vector<int> marks);
+        IterativeSolution(std::vector<int> marks);
         void runSolution();
         
         int getResult();

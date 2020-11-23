@@ -2,87 +2,77 @@
 
 using namespace std;
 
-EvolutionarySolution::EvolutionarySolution(int wielkoscPopulacji = 100, double prawdopodobienstwoMutacji = 5.0)
+EvolutionarySolution::EvolutionarySolution(vector<int> marks, int populationSize = 100, double mutationFactor = 5.0)
 {
-    this->wielkoscPopulacji = wielkoscPopulacji;
-    this->liczbaGeneracji = liczbaGeneracji;
-    this->prawdopodobienstwoMutacji = prawdopodobienstwoMutacji;
+    this->populationSize = populationSize;
+    this->numberOfGenerations = numberOfGenerations;
+    this->mutationFactor = mutationFactor;
+    this->marks = marks;
 }
+void EvolutionarySolution::simplifyRepetitions() {
 
-void EvolutionarySolution::setOceny(vector<int>ciagOcen)
-{
-    this->oceny = ciagOcen;
-}
-void EvolutionarySolution::tworzeniekrotnosci() {
-   // std::cout<<"Oceny przed: \n";
-    //for(int x: this->oceny)
-    //    std::cout<<x<<" ";
-   // std::cout<<endl;
-    int ostatniaOcena = -1;
-    std::vector<int> ocenyBezKrotnosci;
-    for(int ocena: oceny){
-        if(ocena != ostatniaOcena){
-            krotnosci.push_back(1);
-            ocenyBezKrotnosci.push_back(ocena);
-            ostatniaOcena = ocena;
-        }else{
-            krotnosci[krotnosci.size()-1] = krotnosci[krotnosci.size()-1]+1;
+    int lastMark = -1;
+    std::vector<int> marksWithoutRepetitions;
+    for(int mark: marks){
+        if(mark != lastMark){
+            numberOfRepetitions.push_back(1);
+            marksWithoutRepetitions.push_back(mark);
+            lastMark = mark;
+        }
+        else{
+            numberOfRepetitions[numberOfRepetitions.size()-1] = numberOfRepetitions[numberOfRepetitions.size()-1]+1;
         }
     }
-    this->oceny = ocenyBezKrotnosci;
-  //  std::cout<<"Oceny po: \n";
-   // for(int x: this->oceny)
-   //     std::cout<<x<<" ";
-   // std::cout<<endl;
+    this->marks = marksWithoutRepetitions;
 
 }
-void EvolutionarySolution::powrotOcen(){
-    std::vector<int> nowyWynik;
-    for(unsigned int i = 0 ; i <krotnosci.size();i++){
-        for(int j = 0 ; j <krotnosci[i];j++)
-            nowyWynik.push_back(wynik[i]);
+void EvolutionarySolution::restoreRepetitions(){
+    std::vector<int> newResult;
+    for(unsigned int i = 0 ; i <numberOfRepetitions.size();i++){
+        for(int j = 0 ; j <numberOfRepetitions[i];j++)
+            newResult.push_back(results[i]);
     }
-    this->wynik = nowyWynik;
+    this->results = newResult;
 }
 
 // przygotowuje dystrubuante pod selekcje turniejowa [a=1 , k=2],
-discrete_distribution<> EvolutionarySolution::dobraPopulacja(vector<vector<int>> & populacja, vector<int> & wynikiFunkcjiCelu , vector<tuple<int , vector<int>>>& zbior_dobrych){
+discrete_distribution<> EvolutionarySolution::correctPopulation(vector<vector<int>> & population, vector<int> & fitnessResult , vector<tuple<int , vector<int>>>& correctSet){
 
-    for(unsigned int i = 0 ; i <populacja.size();i++){
-            zbior_dobrych.push_back(make_tuple(wynikiFunkcjiCelu[i], populacja[i]));
+    for(unsigned int i = 0 ; i <population.size();i++){
+            correctSet.push_back(make_tuple(fitnessResult[i], population[i]));
     }
-    sort(wynikiFunkcjiCelu.begin(), wynikiFunkcjiCelu.end());
-    sort(zbior_dobrych.begin(), zbior_dobrych.end());
+    sort(fitnessResult.begin(), fitnessResult.end());
+    sort(correctSet.begin(), correctSet.end());
 
-    double liczbaWynikow = wynikiFunkcjiCelu.size();
+    double fitnessResultSize = fitnessResult.size();
 
-    for(int i = 0 ; i < liczbaWynikow; i++){
-            wynikiFunkcjiCelu[i] = 1.0 + 10.0 * (1 - i / liczbaWynikow); //selekcja turniejowa [a=1 , k=2]
+    for(int i = 0 ; i < fitnessResultSize; i++){
+            fitnessResult[i] = 1.0 + 10.0 * (1 - i / fitnessResultSize); //selekcja turniejowa [a=1 , k=2]
     }
-    discrete_distribution<> d(wynikiFunkcjiCelu.begin(), wynikiFunkcjiCelu.end());
+    discrete_distribution<> d(fitnessResult.begin(), fitnessResult.end());
     return d;
 }
 // mutacja_v1 kazdego genu osobno , szansa zmiany pm
-void EvolutionarySolution::mutacja_v1(vector<int>& genom ,mt19937 & gen, uniform_real_distribution<double>& dist){
-    for(unsigned int i = 0 ; i <genom.size();i++){
-        double prawd = dist(gen);
-        if(genom[i]!=1){
-            if(genom[i]>=genom.size()*1.5 && prawd < prawdopodobienstwoMutacji *2){
-                genom[i] = genom[i] - 2;
+void EvolutionarySolution::mutation_v1(vector<int>& genome ,mt19937 & gen, uniform_real_distribution<double>& dist){
+    for(unsigned int i = 0 ; i <genome.size();i++){
+        double drawn = dist(gen);
+        if(genome[i]!=1){
+            if(genome[i]>=genome.size()*1.5 && drawn < mutationFactor *2){
+                genome[i] = genome[i] - 2;
             }
-             else if(prawd < prawdopodobienstwoMutacji) {
-                genom[i] = genom[i] - 1;
+            else if(drawn < mutationFactor) {
+                genome[i] = genome[i] - 1;
              }
         }
     }
 }
 
 //mutacja rozkladem mormalnym
-void EvolutionarySolution::mutacja_v2(std::vector<int>& genom, std::mt19937 & gen)
+void EvolutionarySolution::mutation_v2(std::vector<int>& genome, std::mt19937 & gen)
 {
-    for(unsigned int i = 0 ; i <genom.size();i++){
-        normal_distribution<> n_d{(double)genom[i], prawdopodobienstwoMutacji};
-        int newValue = n_d(gen);
+    for(unsigned int i = 0 ; i <genome.size();i++){
+        normal_distribution<> n_d{(double)genome[i], mutationFactor};
+        int newValue = round(n_d(gen));
         if(newValue < 0)
         {
             newValue = -newValue;
@@ -92,79 +82,78 @@ void EvolutionarySolution::mutacja_v2(std::vector<int>& genom, std::mt19937 & ge
         {
             newValue = 1;
         }
-        genom[i] = newValue;
+        genome[i] = newValue;
     }
 }
 
 //mutacja rozkladem mormalnym tylko w dol
-void EvolutionarySolution::mutacja_v3(std::vector<int>& genom, std::mt19937 & gen)
+void EvolutionarySolution::mutation_v3(std::vector<int>& genome, std::mt19937 & gene)
 {
-    for(unsigned int i = 0 ; i <genom.size();i++){
-        normal_distribution<> n_d{(double)genom[i], prawdopodobienstwoMutacji};
-        int tmp = n_d(gen);
-        int newValue = genom[i] - abs(genom[i] - tmp);
+    for(unsigned int i = 0 ; i <genome.size();i++){
+        normal_distribution<> n_d{(double)genome[i], mutationFactor};
+        int tmp = round(n_d(gene));
+        int newValue = genome[i] - abs(genome[i] - tmp);
         
         if(newValue <= 0)
         {
             newValue = 1;
         }
 
-        genom[i] = newValue;
+        genome[i] = newValue;
     }
 }
 
 // selekcja osobnika do mutacji , selekcja turniejowa [a=1 , k=2],
-// wazne zeby przed tym wywolac dobraPopulacja , ktora sortuje oraz tworzy rozklad prawdopodobienstwa wyboru poszczegolnych osobnikow
-vector<int> EvolutionarySolution::selekcja( vector<tuple<int , vector<int> > >& zbior_dobrych , mt19937 gen,discrete_distribution<> d){
-    int liczba1 = d(gen);
-    vector<int> rodzic1 = get<1>(zbior_dobrych[liczba1]);
+// wazne zeby przed tym wywolac correctPopulation , ktora sortuje oraz tworzy rozklad prawdopodobienstwa wyboru poszczegolnych osobnikow
+vector<int> EvolutionarySolution::selection( vector<tuple<int , vector<int> > >& correctSet , mt19937 gene, discrete_distribution<> d){
+    int number1 = d(gene);
+    vector<int> parent1 = get<1>(correctSet[number1]);
 
-    int liczba2 = d(gen);
-    vector<int> rodzic2 = get<1>(zbior_dobrych[liczba2]);
+    int number2 = d(gene);
+    vector<int> parent2 = get<1>(correctSet[number2]);
 
-    if(funkcjaCelu(rodzic1) < funkcjaCelu(rodzic2))
-        return rodzic1;
+    if(fitnessFunction(parent1) < fitnessFunction(parent2))
+        return parent1;
     else
-        return rodzic2;
+        return parent2;
 }
 // ocenia osobnika , naprawia drobne bledy
-int EvolutionarySolution::funkcjaCelu(vector<int> & genom ){
-    int suma=0;
-    for(unsigned int i =0 ; i <genom.size();i++){
-        if(genom[i]<=0 || oceny[i]==1)
-            genom[i]=1;
-        if(i==genom.size()-1){
-            suma = suma + genom[i];
+int EvolutionarySolution::fitnessFunction(vector<int> & genome ){
+    int sum = 0;
+    for(unsigned int i = 0 ; i < genome.size(); i++){
+        if(genome[i] <= 0 || marks[i] == 1)
+            genome[i] = 1;
+        if( i == genome.size()-1 ){
+            sum = sum + genome[i];
             break;
         }
-        else if((oceny[i] <oceny[i+1] && genom[i] < genom[i+1]) || (oceny[i] > oceny[i+1] && genom[i] >genom[i+1]) || (oceny[i]==oceny[i+1] && genom[i]==genom[i+1] )  ){
-            suma = suma +genom[i];
+        else if((marks[i] < marks[i+1] && genome[i] < genome[i+1]) || (marks[i] > marks[i+1] && genome[i] > genome[i+1]) || (marks[i] == marks[i+1] && genome[i] == genome[i+1] ) ){
+            sum = sum +genome[i];
         }else{
             return INT_MAX;
         }
     }
-    return  suma;
+    return  sum;
 }
-//zczytuje oceny uczniow z pliku
 
 //generuje poczatkowa populacje z ocen uczniow
-vector<vector<int> > EvolutionarySolution::generacjaPopulacji(){
-    vector<vector<int> > populacja;
-    for(int i=0 ; i <wielkoscPopulacji;i++){
-        populacja.push_back(oceny);
+vector<vector<int> > EvolutionarySolution::generatePopulation(){
+    vector<vector<int> > population;
+    for(int i=0 ; i <populationSize;i++){
+        population.push_back(marks);
     }
-    return populacja;
+    return population;
 }
 
-void EvolutionarySolution::runSolution(int wersjaMutacji, int seed, std::chrono::steady_clock::time_point begin, long long period, long long times )
+void EvolutionarySolution::runSolution(int numberOfMutation, int seed, std::chrono::steady_clock::time_point begin, long long period, long long times )
 {
     random_device rd;    //  https://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     mt19937 gen(rd());
     gen.seed(seed);
     
-    uniform_real_distribution<double> rozkladJednolity(0, nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
-    tworzeniekrotnosci();
-    vector<vector<int>> populacja = generacjaPopulacji();
+    uniform_real_distribution<double> uniformDistribution(0, nextafter(100, DBL_MAX)); //losowe liczby zmiennoprzecinkowe od 0 do 100
+    simplifyRepetitions();
+    vector<vector<int>> population = generatePopulation();
 
     int generationIndex = 0;
 
@@ -173,94 +162,85 @@ void EvolutionarySolution::runSolution(int wersjaMutacji, int seed, std::chrono:
     {
         while( std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin).count() < i *period )
         {
-            vector<int> wynikiFunkcjiCelu;
-            vector<vector<int>> nowaPopulacja;
-            nowaPopulacja.clear();
-            wynikiFunkcjiCelu.clear();
+            vector<int> fitnessResult;
+            vector<vector<int>> newPopulation;
+            newPopulation.clear();
+            fitnessResult.clear();
 
-            int minimalnyWynik=INT_MAX;
-            int indexNajlepszegoWyniku = 0;
-            int indexDrugiegoNajlepszegoWyniku = 0;
+            int minResult=INT_MAX;
+            int indexOfBestResult = 0;
+            int indexOfSecondBestResult = 0;
 
             // ocenianie populacji oraz rezerwowanie dwoch najlepszych osobnikow do nastepnej populacji
 
-            for(unsigned int i=0 ; i < populacja.size();i++){
-                // for(int gen : populacja[i])
-                //     cout<<gen<<" ";
-                int wynik = funkcjaCelu(populacja[i]);
-                if(wynik <minimalnyWynik){
-                    minimalnyWynik = wynik;
-                    indexDrugiegoNajlepszegoWyniku = indexNajlepszegoWyniku;
-                    indexNajlepszegoWyniku = i;
+            for(unsigned int i=0 ; i < population.size();i++){
+                int result = fitnessFunction(population[i]);
+                if(result <minResult){
+                    minResult = result;
+                    indexOfSecondBestResult = indexOfBestResult;
+                    indexOfBestResult = i;
                 }
-                wynikiFunkcjiCelu.push_back(wynik);
-                // cout <<"|" <<wynik<<"\n";
+                fitnessResult.push_back(result);
             }
             
             // rezerwowany 1 i 2  najlepszy wynik do nastepnej populacji
-            nowaPopulacja.push_back(populacja[indexNajlepszegoWyniku]);
-            nowaPopulacja.push_back(populacja[indexDrugiegoNajlepszegoWyniku]);
+            newPopulation.push_back(population[indexOfBestResult]);
+            newPopulation.push_back(population[indexOfSecondBestResult]);
 
-            vector<tuple<int , vector<int>>> zbiorRozwiazan;
-            zbiorRozwiazan.clear();
+            vector<tuple<int , vector<int>>> setOfResults;
+            setOfResults.clear();
 
             // dystrybucja dyskretna po ktorej bedziemy wybierac kolejnych osobnikow do selekcji
-            discrete_distribution<> rozkladDyskretny = dobraPopulacja(populacja, wynikiFunkcjiCelu, zbiorRozwiazan);
+            discrete_distribution<> discreteDistribution = correctPopulation(population, fitnessResult, setOfResults);
 
-            for(int i=0 ; i <wielkoscPopulacji -2 ; i++){
-                vector<int> rodzic = selekcja(zbiorRozwiazan, gen, rozkladDyskretny);
-                vector<int> kopia  = rodzic;
-                switch (wersjaMutacji)
+            for(int i=0 ; i <populationSize -2 ; i++){
+                vector<int> parent = selection(setOfResults, gen, discreteDistribution);
+                vector<int> copy  = parent;
+                switch (numberOfMutation)
                 {
                 case 1:
-                    mutacja_v1(rodzic, gen, rozkladJednolity);
+                    mutation_v1(parent, gen, uniformDistribution);
                     break;
                 case 2:
-                    mutacja_v2(rodzic, gen);
+                    mutation_v2(parent, gen);
                     break;
                 case 3:
-                    mutacja_v3(rodzic, gen);
+                    mutation_v3(parent, gen);
                     break;
                 default:
                     break;
                 }
                 
-                if(funkcjaCelu(rodzic) == INT_MAX)
-                    nowaPopulacja.push_back(kopia);
+                if(fitnessFunction(parent) == INT_MAX)
+                    newPopulation.push_back(copy);
                 else
-                    nowaPopulacja.push_back(rodzic);
+                    newPopulation.push_back(parent);
             }
-            populacja = nowaPopulacja;
+            population = newPopulation;
             generationIndex++;
             
         }
-        vector<int>wynikiFunkcjiCelu;
-        int minimalnyWynik=INT_MAX;
-        int indexWyniku = 0;
-        for(unsigned int i=0 ; i < populacja.size();i++){
-            int wynik = funkcjaCelu(populacja[i]);
-            if(wynik <minimalnyWynik){
-                minimalnyWynik = wynik;
-                indexWyniku = i;
+        vector<int>fitnessResult;
+        int minResult = INT_MAX;
+        int indexOfResult = 0;
+        for(unsigned int i = 0 ; i < population.size(); i++){
+            int result = fitnessFunction(population[i]);
+            if(result <minResult){
+                minResult = result;
+                indexOfResult = i;
             }
         }
-        wynik = populacja[indexWyniku];
+        results = population[indexOfResult];
         milestones.push_back(getMileStone(generationIndex, begin));
     }
-    powrotOcen();
-    
-    // cout<<"\n============================\n";
-    // cout<<"Ilosc ciastek: "<<minimalnyWynik<<endl;
-    // for(int x : genom)
-    //     cout<<x<<" ";
-    // cout<<"\n============================\n";
+    restoreRepetitions();
 }
 
-void EvolutionarySolution::piszWynik()
+void EvolutionarySolution::writeResult()
 {
     cout << "uklad ciastek:\n";
     int sum = 0;
-    for(int i : wynik)
+    for(int i : results)
     {
         cout << i << " ";
         sum += i;
@@ -270,10 +250,10 @@ void EvolutionarySolution::piszWynik()
 
 }
 
-int EvolutionarySolution::getRezultat()
+int EvolutionarySolution::getRezult()
 {
     int sum = 0;
-    for(int i : wynik)
+    for(int i : results)
     {
         sum += i;
     }
@@ -283,9 +263,9 @@ int EvolutionarySolution::getRezultat()
 MileStone EvolutionarySolution::getMileStone(int generation, std::chrono::steady_clock::time_point begin)
 {
     int sum = 0;
-    for( unsigned int i = 0; i < wynik.size(); ++i )
+    for( unsigned int i = 0; i < results.size(); ++i )
     {
-        sum += wynik[i] * krotnosci[i];
+        sum += results[i] * numberOfRepetitions[i];
     }
 
     MileStone ms;

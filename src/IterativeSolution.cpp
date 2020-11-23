@@ -2,12 +2,7 @@
 
 using namespace std;
 
-IterativeSolution::IterativeSolution()
-{
-
-}
-
-void IterativeSolution::setMarks(std::vector<int> marks)
+IterativeSolution::IterativeSolution(vector<int> marks)
 {
 	this->marks = marks;
 	this->numberOfStudents = marks.size();
@@ -89,10 +84,6 @@ void IterativeSolution::runSolution()
 			reducedCookies[numberOfStudents - 1] = 1;
 		}
 		
-		// for( int i = 0; i < numberOfStudents; ++i )
-		// 	cout << reducedCookies[i] << " ";
-		// cout << "\n";
-		
 		for( int i = numberOfStudents - 2; i > 0; --i )
 		{
 			if( reducedCookies[i] == -1 )
@@ -114,13 +105,6 @@ void IterativeSolution::runSolution()
 			reducedCookies[0] = reducedCookies[1] + 1;
 		}	
 	}
-	
-	
-	
-	
-	
-	// for( int i = 0; i < numberOfStudents; ++i )
-	// 	cout << reducedCookies[i] << " ";
 
 	for( unsigned int i = 0; i < reducedMarks.size(); ++i )
 	{
@@ -133,9 +117,6 @@ void IterativeSolution::runSolution()
 	}
 
 	numberOfStudents = marks.size(); // przywracamy oryginalna liczbe uczniow
-
-	// for( int i = 0; i < numberOfStudents; ++i )
-	// 	cout << cookiesAmount[i] << " ";
 }
 
 int IterativeSolution::getResult()
@@ -168,11 +149,6 @@ std::vector<pair<int, int> > IterativeSolution::reduceProblem()
 		}
 		reducedProblem.push_back(make_pair(marks[i], counter));
 	}
-
-	// for(pair <int,int> p : reducedProblem)
-	// {
-	// 	cout << p.first << " " << p.second << " | ";
-	// }
 
 	return reducedProblem;
 }
