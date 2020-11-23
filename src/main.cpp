@@ -22,16 +22,25 @@ const std::string FILE_NAME_BASE = "./in/input";
 const std::string FILE_NAME_BASE_EXTENSION = ".txt";
 const int NUMBER_OF_VERSIONS = 3;
 
-const int DEFAULT_WIELKOSC_POPULACJI = 15;
-const double DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI = 0.05;
-const int DEFAULT_WERSJA_MUTACJI = 1;
-const int DEFAULT_PERIOD = 10;
+const int DEFAULT_POPULATION_SIZE = 15;
+const double DEFAULT_MUTATION_FACTOR = 0.05;
+const int DEFAULT_MUTATION_VERSION = 1;
+const int DEFAULT_PERIOD = 10000;
 const int DEFAULT_TIMES = 35;
 
 const int NUMBER_OF_MUTATION_FACTOR_TESTS = 8;
 const int NUMBER_OF_POPULATION_TESTS = 3;
 
+//najlepsze parametry
+const int BEST_VERSION = 1;
+const double BEST_MUTATION_FACTOR = 6.4;
+const int BEST_POPULATION_SIZE = 5;
+
+void tests(int times, int propabilityBase, int populationBase, vector<int>versions);
+void run();
+
 vector<int> readFile(string fileName);
+vector<int> readStdin();
 pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result);
 
 int main(int argc, char *argv[])
@@ -39,10 +48,15 @@ int main(int argc, char *argv[])
     ios_base::sync_with_stdio(0);
 	cin.tie(NULL);
 
-	int period = DEFAULT_PERIOD;
 	int times = DEFAULT_TIMES;
+	int propabilityBase = DEFAULT_MUTATION_FACTOR;
+	int populationBase = DEFAULT_POPULATION_SIZE;
 
 	vector<int>versions;
+
+	bool gMode = false;
+	bool tMode = false;
+	bool rMode = false;
 	
 	//analiza flag
 	for(int i = 1; i < argc; i+=2 )
@@ -51,18 +65,19 @@ int main(int argc, char *argv[])
 		{
 			switch(argv[i][1])
 			{
-				case 'p': //period - okres zbieranie wynikow
-					if(stof(argv[i+1]) <= 0)
-					{
-						cout << "okres musi byc wiekszy od 0\n";
-						return 0;
-					}
-					else
-					{
-						period = stof(argv[i+1]);
-					}
+				case 'g'://wlaczenie generowania testow
+					//generujemy testy
+					gMode = true;
+					--i;
 					break;
-				case 't': //times - ile razy wykonujemy okres
+				case 't': //tests - tryb uruchomienia testowania paramertow
+					tMode = true;
+					--i;
+					break;
+				case 'r': //run - tryb uruchomienia z ustawionymi przez nas najlepszymi parametrami
+					rMode = true;
+					break;
+				case 'p': //period - liczba okresow w ktorych zbieramy wyniki wynikow
 					if(stoi(argv[i+1]) <= 0)
 					{
 						cout << "ilosc razy musi byc wiekszy od 0\n";
@@ -73,7 +88,18 @@ int main(int argc, char *argv[])
 						times = stoi(argv[i+1]);
 					}
 					break;
-				case 'v': //wersja mutacji
+				case 'm': //wspolczynnik mutacji
+					if(stof(argv[i+1]) <= 0)
+					{
+						cout << "wspolczynnik mutacji musi byc wiekszy od 0\n";
+						return 0;
+					}
+					else
+					{
+						propabilityBase = stof(argv[i+1]);
+					}
+					break;
+				case 'v': //wersja mutacji - wersje mutacji z ktorymi wykonywac testy
 					if(stoi(argv[i+1]) > NUMBER_OF_VERSIONS || stoi(argv[i+1]) < 0)
 					{
 						cout << "nie ma takiej wersji mutacji\n";
@@ -84,19 +110,25 @@ int main(int argc, char *argv[])
 						versions.push_back(stoi(argv[i+1]));
 					}
 					break;
-				case 'g'://wlaczenie generowania testow
-					//generujemy testy
-					TestGenerator::generateTests();
-					--i;
-					break;
 			}
 		}
 		else
 		if(argv[i][1] == 'g') //wlaczenie generowania testow
 		{
 			//generujemy testy
-			TestGenerator::generateTests();
+			gMode = true;
 			--i;
+		}
+		else
+		if(argv[i][1] == 't') //tests - tryb uruchomienia testowania paramertow
+		{
+			tMode = true;
+			--i;
+		}
+		else
+		if(argv[i][1] == 'r') //run - tryb uruchomienia z ustawionymi przez nas najlepszymi parametrami
+		{
+			rMode = true;
 		}
 		else
 		{
@@ -105,6 +137,26 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if(gMode)
+	{
+		TestGenerator::generateTests();
+	}
+	if(tMode)
+	{
+		tests(times, propabilityBase, populationBase, versions);
+	}
+	if(rMode)
+	{
+		run();
+	}
+
+	
+
+}
+
+void tests(int times, int propabilityBase, int populationBase, vector<int>versions)
+{
+	int period = DEFAULT_PERIOD;
 	//wywoloanie iteracyjne
 	pair<long long, long long> iterationResults[NUMBER_OF_TESTS];
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
@@ -138,10 +190,10 @@ int main(int argc, char *argv[])
 	{
 		vector<int> marks = readFile(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 		
-		double propabilityBase = DEFAULT_PRAWDOPODOBIENSTWO_MUTACJI;
+		propabilityBase = DEFAULT_MUTATION_FACTOR;
 		for(int j = 1; j <= NUMBER_OF_MUTATION_FACTOR_TESTS; ++j )
 		{
-			int populationBase = DEFAULT_WIELKOSC_POPULACJI;
+			populationBase = DEFAULT_POPULATION_SIZE;
 			for(int k = 1; k <= NUMBER_OF_POPULATION_TESTS; ++k)
 			{
 				for(int version : versions)
@@ -199,7 +251,15 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+}
 
+void run()
+{
+	vector<int> marks = readStdin();
+	EvolutionarySolution eSolution(marks, BEST_POPULATION_SIZE, BEST_MUTATION_FACTOR);
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	eSolution.runSolution(BEST_VERSION, 0, begin, DEFAULT_PERIOD, DEFAULT_TIMES);
+	eSolution.writeResult();
 }
 
 vector<int> readFile(string fileName)
@@ -213,6 +273,23 @@ vector<int> readFile(string fileName)
         v.push_back(word);
     }
     return v;
+}
+
+vector<int> readStdin()
+{
+    vector<int> v;
+    int number;
+	string s;
+	
+	getline(std::cin, s);
+
+	std::stringstream iss( s );
+
+    while ( iss >> number )
+	{
+  		v.push_back( number );
+	}
+	return v;
 }
 
 pair<long long, long long> parseResault(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, int result)
