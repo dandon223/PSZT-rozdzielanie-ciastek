@@ -33,7 +33,7 @@ const int NUMBER_OF_POPULATION_TESTS = 3;
 
 //najlepsze parametry
 const int BEST_VERSION = 1;
-const double BEST_MUTATION_FACTOR = 6.4;
+const double BEST_MUTATION_FACTOR = 1.6;
 const int BEST_POPULATION_SIZE = 5;
 
 void tests(int times, int propabilityBase, int populationBase, vector<int>versions);
@@ -54,9 +54,9 @@ int main(int argc, char *argv[])
 
 	vector<int>versions;
 
-	bool gMode = false;
-	bool tMode = false;
-	bool rMode = false;
+	bool gMode = false; //czy uruchomic tryb generowania testow
+	bool tMode = false; //czy uruchomic tryb testowania
+	bool rMode = false; //czy uruchomic tryb uruchamiania najlepszego rozwiazania
 	
 	//analiza flag
 	for(int i = 1; i < argc; i+=2 )
@@ -154,6 +154,7 @@ int main(int argc, char *argv[])
 
 }
 
+//uruchomienie testow
 void tests(int times, int propabilityBase, int populationBase, vector<int>versions)
 {
 	int period = DEFAULT_PERIOD;
@@ -161,8 +162,10 @@ void tests(int times, int propabilityBase, int populationBase, vector<int>versio
 	pair<long long, long long> iterationResults[NUMBER_OF_TESTS];
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
+		//wczytanie pliku z danymi testowymi
 		vector<int> marks = readFile(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 
+		//znalezienie rozwiazania dla wywolania iteracyjnego
 		IterativeSolution iSolution(marks);
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     	iSolution.runSolution();
@@ -175,7 +178,6 @@ void tests(int times, int propabilityBase, int populationBase, vector<int>versio
 	***************************************************/
 
 	//miejsce na zapisywanie wynikow ewolucyjnych
-
 	//dla kazdego pliku [] przechowujemy wektor roznych caseow testowania
 	//w kazdym vectorze - vector wynikow
 	vector< vector<MileStone> > results[NUMBER_OF_TESTS * NUMBER_OF_SEEDS]; 
@@ -188,6 +190,7 @@ void tests(int times, int propabilityBase, int populationBase, vector<int>versio
 
 	for( int i = 0; i < NUMBER_OF_TESTS; ++i )
 	{
+		//wczytanie pliku z danymi testowymi
 		vector<int> marks = readFile(FILE_NAME_BASE + to_string(i) + FILE_NAME_BASE_EXTENSION);
 		
 		propabilityBase = DEFAULT_MUTATION_FACTOR;
@@ -207,6 +210,7 @@ void tests(int times, int propabilityBase, int populationBase, vector<int>versio
 					}
 					for( int l = 0; l < NUMBER_OF_SEEDS; ++l ) // zmienne seedy
 					{
+						//uruchamiamy rozwizanie ewolucyjne
 						EvolutionarySolution eSolution(marks, populationBase, propabilityBase);
 						std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 						eSolution.runSolution(version, l, begin, period, times);
@@ -253,15 +257,19 @@ void tests(int times, int propabilityBase, int populationBase, vector<int>versio
 	}
 }
 
+//uruchamiamy rozwiazanie z najlepszymi parametrami
 void run()
 {
+	//wczytujemy oceny ze standardowego wejscia
 	vector<int> marks = readStdin();
+
 	EvolutionarySolution eSolution(marks, BEST_POPULATION_SIZE, BEST_MUTATION_FACTOR);
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	eSolution.runSolution(BEST_VERSION, 0, begin, DEFAULT_PERIOD, DEFAULT_TIMES);
 	eSolution.writeResult();
 }
 
+//wczytujemy wejscie z pliku
 vector<int> readFile(string fileName)
 {
     vector<int> v;
@@ -275,6 +283,7 @@ vector<int> readFile(string fileName)
     return v;
 }
 
+//wczytujemy wejscie ze standardowego wejscia
 vector<int> readStdin()
 {
     vector<int> v;
